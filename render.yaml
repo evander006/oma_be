@@ -1,0 +1,28 @@
+# Blueprint for https://render.com — connect the GitHub repo and apply this file,
+# or create a Web Service manually using the same settings.
+services:
+  - type: web
+    name: oma-dom-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: DEV_MODE
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: GEMINI_API_KEY
+        sync: false
+      # SQLite file lives in the container (OK for MVP demo; resets on redeploy).
+      - key: DATABASE_URL
+        value: sqlite:////app/data/oma_dom.db

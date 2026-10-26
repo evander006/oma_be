@@ -10,11 +10,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.deps import get_or_create_demo_user
 from app.api.routes import ai, assets, commerce, health, products, profile, rooms
 from app.core.config import get_settings
-from app.core.logging import setup_logging
+from app.core.logging import get_logger, setup_logging
 from app.db.base import Base
-from app.db.models import InstallationService
+from app.db.models import InstallationService, Product
 from app.db.session import SessionLocal, engine
-from app.services.catalog_service import ensure_seed_categories
+from app.services.catalog_service import ensure_seed_categories, upsert_products_from_json
+
+logger = get_logger(__name__)
 
 
 def seed_installation_services() -> None:
@@ -46,11 +48,37 @@ def seed_installation_services() -> None:
         db.close()
 
 
+def seed_catalog_from_json_if_empty() -> None:
+    """On Render/ephemeral disk, rebuild catalog from baked-in products.json."""
+    settings = get_settings()
+    db = SessionLocal()
+    try:
+        if db.query(Product).count() > 0:
+            return
+        if not settings.products_json_path.is_file():
+            logger.warning("No products.json found; catalog stays empty")
+            return
+        stats = upsert_products_from_json(db, settings.products_json_path)
+        logger.info("Seeded catalog from JSON: %s", stats)
+        for product in db.query(Product).all():
+            glb = settings.models_dir / f"{product.id}.glb"
+            if glb.is_file():
+                product.has_3d_model = True
+                product.model_path = f"models/products/{product.id}.glb"
+                product.model_format = "glb"
+                product.model_source = "procedural_python"
+                product.model_status = "ready"
+        db.commit()
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     setup_logging()
     Base.metadata.create_all(bind=engine)
     seed_installation_services()
+    seed_catalog_from_json_if_empty()
     yield
 
 

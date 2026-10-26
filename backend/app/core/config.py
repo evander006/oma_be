@@ -41,13 +41,23 @@ class Settings(BaseSettings):
     ai_history_limit: int = 12
     rate_limit_ai_per_minute: int = 20
 
-    # Gemini — free-tier multimodal Flash (vision+text). Override via env.
+    # openrouter | gemini | mock (mock only for automated tests)
+    ai_provider: str = "openrouter"
+
+    # OpenRouter — preferred non-Google free vision route for MVP.
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "nvidia/nemotron-3.5-super-vl:free"
+    openrouter_fallback_models: str = (
+        "qwen/qwen2.5-vl-3b-instruct:free,nvidia/nemotron-nano-12b-v2-vl:free"
+    )
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_site_url: str = "https://oma-be-85l2.onrender.com"
+    openrouter_app_name: str = "OMA Dom"
+
+    # Gemini (optional; often overloaded on free tier).
     gemini_api_key: str | None = None
-    # Prefer a stable free-tier Flash model; override via env if needed.
     gemini_model: str = "gemini-2.5-flash"
-    # Comma-separated fallbacks used on 503 / high demand.
     gemini_fallback_models: str = "gemini-2.5-flash-lite,gemini-3.8-flash"
-    ai_provider: str = "mock"  # mock | gemini
 
     oma_base_url: str = "https://www.oma.by"
     oma_request_timeout: float = 30.0

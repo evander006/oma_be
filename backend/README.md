@@ -44,12 +44,12 @@ Unit tests use fixtures + mock AI and do not need network or Gemini keys.
 
 See `.env.example`. Important:
 
-- `AI_PROVIDER=mock` for offline demo / CI
-- `AI_PROVIDER=gemini` + `GEMINI_API_KEY` for real vision+text
-- Default model: `gemini-3.8-flash` (free-tier multimodal). Override with `GEMINI_MODEL` if needed.
-- Authentication is disabled for the MVP. All requests use shared demo user **Анна** (`GET /api/v1/me`).
+- `AI_PROVIDER=mock` — offline / CI
+- `AI_PROVIDER=openrouter` + `OPENROUTER_API_KEY` — **recommended** (non-Google free vision models)
+- `AI_PROVIDER=gemini` + `GEMINI_API_KEY` — optional (often overloaded on free tier)
+- Authentication disabled for MVP; demo user **Анна** (`GET /api/v1/me`)
 
-**Privacy:** when using Gemini, uploaded room photos are sent to Google for analysis. They are not processed exclusively on-device.
+**Privacy:** with `openrouter` / `gemini`, room photos are sent to that cloud provider for analysis.
 
 ## Docker
 

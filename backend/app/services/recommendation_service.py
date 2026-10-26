@@ -22,13 +22,15 @@ from app.services.catalog_service import filter_candidates_for_ai, get_product
 from app.services.image_service import load_resized_image_bytes
 
 
-SYSTEM_PROMPT = """Ты — ассистент OMA. Дом. Отвечай по-русски.
-Рекомендуй ТОЛЬКО товары из предоставленного каталога (их id).
-Не выдумывай цены, наличие, размеры или товары.
-Отличай наблюдения по фото от предположений.
-Не утверждай точные размеры комнаты по фото.
-Если данных не хватает — укажи missing_info.
-Верни JSON со структурой:
+SYSTEM_PROMPT = """Ты — ассистент OMA. Дом для подбора товаров. Отвечай по-русски.
+Твоя задача — подобрать товары из CATALOG_JSON под запрос пользователя.
+Используй ТОЛЬКО id из каталога. Не выдумывай товары, цены и наличие.
+В summary напиши короткий ответ человеку: что подобрал и почему (1–3 предложения).
+В ranked_product_ids верни 1–5 лучших id из каталога по смыслу запроса.
+Если точного совпадения нет (например «диван», а в каталоге только стеллажи/полки) —
+честно скажи это в summary и предложи ближайшие позиции из каталога.
+Отличай наблюдения по фото от предположений. Не утверждай точные размеры комнаты по фото.
+Верни ТОЛЬКО JSON:
 {
   "summary": "...",
   "observations": ["..."],
@@ -39,6 +41,45 @@ SYSTEM_PROMPT = """Ты — ассистент OMA. Дом. Отвечай по-
   "reasons": {"id1": "почему подходит"}
 }
 """
+
+
+_KEYWORD_CATEGORY_HINTS: list[tuple[tuple[str, ...], list[str]]] = [
+    (("диван", "кресл", "мебел", "стол", "стул", "шкаф", "стеллаж", "полк", "комод"), ["furniture"]),
+    (("ламп", "свет", "люстр", "бра", "светильн", "ночник", "освещ"), ["lighting", "lighting-ceiling"]),
+    (("смесит", "кран", "сантех"), ["plumbing-faucets"]),
+    (("раковин", "умывальн", "мойк"), ["plumbing-sinks", "kitchen-sinks"]),
+    (("ванн",), ["bath"]),
+]
+
+
+def _category_hints_from_text(text: str) -> list[str]:
+    low = text.lower()
+    cats: list[str] = []
+    for keys, ids in _KEYWORD_CATEGORY_HINTS:
+        if any(k in low for k in keys):
+            cats.extend(ids)
+    # unique preserve order
+    seen: set[str] = set()
+    out: list[str] = []
+    for c in cats:
+        if c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
+
+def _keyword_rank(products: list[Product], query: str, limit: int = 5) -> list[Product]:
+    tokens = [t for t in query.lower().replace(",", " ").split() if len(t) > 2]
+    if not tokens:
+        return products[:limit]
+    scored: list[tuple[int, Product]] = []
+    for p in products:
+        blob = f"{p.name} {p.description or ''} {p.category_id or ''} {p.subcategory or ''}".lower()
+        score = sum(1 for t in tokens if t in blob)
+        if score:
+            scored.append((score, p))
+    scored.sort(key=lambda x: (-x[0], x[1].price or Decimal("0")))
+    return [p for _, p in scored[:limit]] or products[:limit]
 
 
 def _catalog_payload(products: list[Product]) -> list[dict[str, Any]]:
@@ -220,12 +261,17 @@ def chat_with_assistant(
     history_text = "\n".join(f"{m.role}: {m.content}" for m in history)
 
     room = db.get(Room, room_id) if room_id else None
-    category_ids: list[str] = []
-    if room and room.room_type:
-        # soft hint only; hard filters remain budget-based
-        pass
-    candidates = filter_candidates_for_ai(db, budget=budget, category_ids=None, limit=20)
-    catalog = _catalog_payload(candidates)
+    category_ids = _category_hints_from_text(message)
+    candidates = filter_candidates_for_ai(
+        db, budget=budget, category_ids=category_ids or None, limit=30
+    )
+    if not candidates and category_ids:
+        candidates = filter_candidates_for_ai(db, budget=budget, category_ids=None, limit=30)
+    # Put keyword matches first so the model sees relevant items.
+    preferred = _keyword_rank(candidates, message, limit=12)
+    preferred_ids = {p.id for p in preferred}
+    ordered = preferred + [p for p in candidates if p.id not in preferred_ids]
+    catalog = _catalog_payload(ordered[:20])
 
     images: list[AIImagePart] = []
     if room:
@@ -238,20 +284,38 @@ def chat_with_assistant(
                 images.append(AIImagePart(mime_type=mime, data=data))
 
     user_text = (
+        f"Текущий запрос пользователя: {message}\n"
         f"История:\n{history_text}\n"
         f"Стиль: {style}\nБюджет: {budget}\n"
         f"CATALOG_JSON:{json.dumps(catalog, ensure_ascii=False)}"
     )
     provider = get_ai_provider()
     result = provider.generate(
-        system_prompt=SYSTEM_PROMPT + "\nТакже дай краткий человеческий ответ в поле summary.",
+        system_prompt=SYSTEM_PROMPT,
         user_text=user_text,
         images=images,
         expect_json=True,
     )
     structured = result.structured or {}
     ranked = [pid for pid in (structured.get("ranked_product_ids") or []) if get_product(db, pid)]
-    reply = str(structured.get("summary") or result.text)
+    if not ranked:
+        ranked = [p.id for p in _keyword_rank(ordered, message, limit=3)]
+        structured.setdefault("assumptions", []).append(
+            "Модель не вернула id — показаны ближайшие товары из каталога по ключевым словам."
+        )
+    reply = str(structured.get("summary") or result.text).strip()
+    if not reply or "mock AI" in reply.lower() or "макетный анализ" in reply.lower():
+        names = []
+        for pid in ranked[:3]:
+            prod = get_product(db, pid)
+            if prod:
+                names.append(prod.name)
+        reply = (
+            "Подобрала варианты из каталога OMA: " + ", ".join(names)
+            if names
+            else "В локальном каталоге пока нет точного совпадения. Уточните категорию или бюджет."
+        )
+        structured["summary"] = reply
     db.add(
         ChatMessage(
             session_id=session.id,

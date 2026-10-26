@@ -27,7 +27,7 @@ class HealthResponse(APIModel):
     version: str
     environment: str
     ai_provider: str
-    gemini_model: str
+    ai_model: str
     demo_user: str = "Анна"
 
 

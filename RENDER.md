@@ -27,9 +27,9 @@ git push origin main
 | `ENVIRONMENT` | `production` |
 | `DEBUG` | `false` |
 | `CORS_ORIGINS` | `*` |
-| `AI_PROVIDER` | `gemini` |
-| `GEMINI_MODEL` | `gemini-3.8-flash` |
-| `GEMINI_API_KEY` | *(your key from AI Studio)* |
+| `AI_PROVIDER` | `openrouter` |
+| `OPENROUTER_API_KEY` | *(key from https://openrouter.ai/keys)* |
+| `OPENROUTER_MODEL` | `nvidia/nemotron-3.5-super-vl:free` |
 | `DATABASE_URL` | `sqlite:////app/data/oma_dom.db` |
 
 5. Click **Create Web Service** and wait for the first deploy (~5–10 min).

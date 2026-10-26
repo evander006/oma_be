@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data
+    environment:
+      DATABASE_URL: sqlite:////app/data/oma_dom.db
+      DEV_MODE: "true"
+      AI_PROVIDER: mock

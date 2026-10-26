@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
@@ -10,6 +11,13 @@ from app.core.config import get_settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+
+# Tried in order when primary model returns 503 / high demand.
+DEFAULT_FALLBACK_MODELS = (
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3.8-flash",
+)
 
 
 @dataclass
@@ -22,6 +30,14 @@ class AIImagePart:
 class AIResult:
     text: str
     structured: dict[str, Any] | None = None
+
+
+class AIProviderError(RuntimeError):
+    """Raised when the external AI provider fails after retries."""
+
+    def __init__(self, message: str, *, status_code: int = 503) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 class AIProvider(ABC):
@@ -67,7 +83,6 @@ class MockAIProvider(AIProvider):
             "ranked_product_ids": [],
             "reasons": {},
         }
-        # Extract product ids mentioned after CATALOG: marker if present.
         if "CATALOG_JSON:" in user_text:
             try:
                 blob = user_text.split("CATALOG_JSON:", 1)[1].strip()
@@ -90,9 +105,26 @@ class MockAIProvider(AIProvider):
 
 
 class GeminiAIProvider(AIProvider):
-    def __init__(self, api_key: str, model: str) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        fallback_models: list[str] | None = None,
+        max_retries: int = 3,
+    ) -> None:
         self.api_key = api_key
         self.model = model
+        self.fallback_models = fallback_models or list(DEFAULT_FALLBACK_MODELS)
+        self.max_retries = max_retries
+
+    def _model_chain(self) -> list[str]:
+        seen: set[str] = set()
+        chain: list[str] = []
+        for name in [self.model, *self.fallback_models]:
+            if name and name not in seen:
+                seen.add(name)
+                chain.append(name)
+        return chain
 
     def generate(
         self,
@@ -105,6 +137,7 @@ class GeminiAIProvider(AIProvider):
         try:
             from google import genai
             from google.genai import types
+            from google.genai import errors as genai_errors
         except ImportError as exc:
             raise RuntimeError("google-genai package is required for Gemini provider") from exc
 
@@ -119,20 +152,62 @@ class GeminiAIProvider(AIProvider):
         }
         if expect_json:
             config_kwargs["response_mime_type"] = "application/json"
+        config = types.GenerateContentConfig(**config_kwargs)
 
-        response = client.models.generate_content(
-            model=self.model,
-            contents=contents,
-            config=types.GenerateContentConfig(**config_kwargs),
-        )
-        text = (response.text or "").strip()
-        structured = None
-        if expect_json:
-            try:
-                structured = json.loads(text)
-            except json.JSONDecodeError:
-                logger.warning("Gemini returned non-JSON despite expect_json")
-        return AIResult(text=text, structured=structured)
+        last_error: Exception | None = None
+        for model_name in self._model_chain():
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=contents,
+                        config=config,
+                    )
+                    text = (response.text or "").strip()
+                    structured = None
+                    if expect_json:
+                        try:
+                            structured = json.loads(text)
+                        except json.JSONDecodeError:
+                            logger.warning("Gemini returned non-JSON despite expect_json")
+                    if model_name != self.model:
+                        logger.info("Gemini used fallback model %s", model_name)
+                    return AIResult(text=text, structured=structured)
+                except genai_errors.ServerError as exc:
+                    last_error = exc
+                    code = getattr(exc, "code", None) or 503
+                    logger.warning(
+                        "Gemini %s attempt %s/%s failed (%s): %s",
+                        model_name,
+                        attempt,
+                        self.max_retries,
+                        code,
+                        exc,
+                    )
+                    if attempt < self.max_retries:
+                        time.sleep(1.5 * attempt)
+                        continue
+                    # try next model
+                    break
+                except genai_errors.ClientError as exc:
+                    # 429 rate limit — retry; other 4xx — fail fast / try next model
+                    last_error = exc
+                    code = getattr(exc, "code", None) or 400
+                    logger.warning("Gemini client error on %s: %s", model_name, exc)
+                    if code == 429 and attempt < self.max_retries:
+                        time.sleep(2.0 * attempt)
+                        continue
+                    break
+                except Exception as exc:  # noqa: BLE001
+                    last_error = exc
+                    logger.exception("Unexpected Gemini error on %s", model_name)
+                    break
+
+        raise AIProviderError(
+            "Сервис Gemini временно перегружен. Повторите запрос через минуту "
+            "или смените GEMINI_MODEL (например gemini-2.5-flash) в настройках Render.",
+            status_code=503,
+        ) from last_error
 
 
 def get_ai_provider() -> AIProvider:
@@ -141,5 +216,14 @@ def get_ai_provider() -> AIProvider:
         if not settings.gemini_api_key:
             logger.warning("GEMINI_API_KEY missing; falling back to mock AI provider")
             return MockAIProvider()
-        return GeminiAIProvider(settings.gemini_api_key, settings.gemini_model)
+        fallbacks = [
+            m.strip()
+            for m in (settings.gemini_fallback_models or "").split(",")
+            if m.strip()
+        ] or list(DEFAULT_FALLBACK_MODELS)
+        return GeminiAIProvider(
+            settings.gemini_api_key,
+            settings.gemini_model,
+            fallback_models=fallbacks,
+        )
     return MockAIProvider()

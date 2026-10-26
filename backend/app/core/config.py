@@ -43,7 +43,10 @@ class Settings(BaseSettings):
 
     # Gemini — free-tier multimodal Flash (vision+text). Override via env.
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    # Prefer a stable free-tier Flash model; override via env if needed.
+    gemini_model: str = "gemini-2.5-flash"
+    # Comma-separated fallbacks used on 503 / high demand.
+    gemini_fallback_models: str = "gemini-2.5-flash-lite,gemini-3.8-flash"
     ai_provider: str = "mock"  # mock | gemini
 
     oma_base_url: str = "https://www.oma.by"

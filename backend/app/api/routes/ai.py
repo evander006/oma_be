@@ -14,13 +14,20 @@ from app.schemas import (
     AIChatRequest,
     AIChatResponse,
     AIRecommendRequest,
+    BudgetSummary,
+    RecommendationItem,
     RecommendationsResponse,
+    RoomAnalysisOut,
     RoomRecommendRequest,
 )
+from app.services.ai_provider import AIProviderError
 from app.services.asset_urls import serialize_product
 from app.services.catalog_service import filter_candidates_for_ai
-from app.services.recommendation_service import chat_with_assistant, recommend_from_room
-from app.schemas import BudgetSummary, RecommendationItem, RoomAnalysisOut
+from app.services.recommendation_service import (
+    _apply_budget_filter,
+    chat_with_assistant,
+    recommend_from_room,
+)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -46,16 +53,19 @@ def ai_chat(
     _rate_limit(user.id)
     if payload.room_id:
         require_room_owner(db, payload.room_id, user)
-    session, reply, product_ids, analysis = chat_with_assistant(
-        db,
-        user_id=user.id,
-        message=payload.message,
-        session_id=payload.session_id,
-        room_id=payload.room_id,
-        photo_ids=payload.photo_ids,
-        budget=payload.budget,
-        style=payload.style,
-    )
+    try:
+        session, reply, product_ids, analysis = chat_with_assistant(
+            db,
+            user_id=user.id,
+            message=payload.message,
+            session_id=payload.session_id,
+            room_id=payload.room_id,
+            photo_ids=payload.photo_ids,
+            budget=payload.budget,
+            style=payload.style,
+        )
+    except AIProviderError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     return AIChatResponse(
         session_id=session.id,
         reply=reply,
@@ -71,24 +81,25 @@ def ai_recommendations(
     user: User = Depends(get_current_user),
 ) -> RecommendationsResponse:
     _rate_limit(user.id)
-    if payload.room_id:
-        room = require_room_owner(db, payload.room_id, user)
-        return recommend_from_room(
-            db,
-            room=room,
-            prompt=payload.prompt,
-            photo_ids=[],
-            max_budget=payload.budget,
-            preferred_style=payload.style,
-            category_ids=payload.category_ids,
-            limit=payload.limit,
-        )
-    from app.services.recommendation_service import _apply_budget_filter
+    try:
+        if payload.room_id:
+            room = require_room_owner(db, payload.room_id, user)
+            return recommend_from_room(
+                db,
+                room=room,
+                prompt=payload.prompt,
+                photo_ids=[],
+                max_budget=payload.budget,
+                preferred_style=payload.style,
+                category_ids=payload.category_ids,
+                limit=payload.limit,
+            )
+    except AIProviderError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     candidates = filter_candidates_for_ai(
         db, budget=payload.budget, category_ids=payload.category_ids or None, limit=30
     )
-    # Per-item filter already applied; also enforce total budget for the set.
     selected = _apply_budget_filter(candidates, payload.budget)[: payload.limit]
     total = sum((p.price or 0) for p in selected)
     return RecommendationsResponse(
@@ -134,16 +145,19 @@ def analyze_room(
     if payload.preferred_style:
         room.style_preference = payload.preferred_style
     db.commit()
-    return recommend_from_room(
-        db,
-        room=room,
-        prompt=payload.prompt or "Проанализируй комнату по фото",
-        photo_ids=payload.photo_ids,
-        max_budget=payload.max_budget,
-        preferred_style=payload.preferred_style,
-        category_ids=payload.category_ids,
-        limit=payload.limit,
-    )
+    try:
+        return recommend_from_room(
+            db,
+            room=room,
+            prompt=payload.prompt or "Проанализируй комнату по фото",
+            photo_ids=payload.photo_ids,
+            max_budget=payload.max_budget,
+            preferred_style=payload.preferred_style,
+            category_ids=payload.category_ids,
+            limit=payload.limit,
+        )
+    except AIProviderError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
 
 @router.post("/recommendations/from-room", response_model=RecommendationsResponse)

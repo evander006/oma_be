@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.api.deps import get_or_create_demo_user
 from app.api.routes import ai, assets, commerce, health, products, profile, rooms
@@ -100,6 +101,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        """Render primary URL — send browsers to Swagger UI."""
+        return RedirectResponse(url="/docs")
+
     prefix = settings.api_v1_prefix
     app.include_router(health.router, prefix=prefix)
     app.include_router(profile.router, prefix=prefix)

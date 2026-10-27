@@ -32,15 +32,33 @@ def _timestamps() -> list[sa.Column]:
     ]
 
 
-def upgrade() -> None:
-    with op.batch_alter_table("properties") as batch:
-        batch.add_column(sa.Column("tenure", sa.String(length=32), nullable=True))
-    with op.batch_alter_table("rooms") as batch:
-        batch.add_column(sa.Column("wall_material", sa.String(length=255), nullable=True))
-        batch.add_column(sa.Column("floor_material", sa.String(length=255), nullable=True))
-        batch.add_column(sa.Column("ceiling_material", sa.String(length=255), nullable=True))
+def _existing_columns(table_name: str) -> set[str]:
+    inspector = sa.inspect(op.get_bind())
+    return {column["name"] for column in inspector.get_columns(table_name)}
 
-    op.create_table(
+
+def _create_table_if_missing(table_name: str, *columns: sa.SchemaItem) -> None:
+    # 0001_initial creates tables from CURRENT ORM metadata. Therefore a fresh
+    # install may already have all ecosystem tables before this migration runs.
+    if not sa.inspect(op.get_bind()).has_table(table_name):
+        op.create_table(table_name, *columns)
+
+
+def upgrade() -> None:
+    if "tenure" not in _existing_columns("properties"):
+        with op.batch_alter_table("properties") as batch:
+            batch.add_column(sa.Column("tenure", sa.String(length=32), nullable=True))
+
+    existing_room_columns = _existing_columns("rooms")
+    if not {"wall_material", "floor_material", "ceiling_material"}.issubset(
+        existing_room_columns
+    ):
+        with op.batch_alter_table("rooms") as batch:
+            for name in ("wall_material", "floor_material", "ceiling_material"):
+                if name not in existing_room_columns:
+                    batch.add_column(sa.Column(name, sa.String(length=255), nullable=True))
+
+    _create_table_if_missing(
         "contractor_profiles",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("slug", sa.String(length=128), nullable=False, unique=True),
@@ -54,7 +72,7 @@ def upgrade() -> None:
         sa.Column("is_demo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "contractor_specialties",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
@@ -68,7 +86,7 @@ def upgrade() -> None:
         *_timestamps(),
         sa.UniqueConstraint("contractor_id", "code", name="uq_contractor_specialty"),
     )
-    op.create_table(
+    _create_table_if_missing(
         "contractor_portfolio_items",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
@@ -83,7 +101,7 @@ def upgrade() -> None:
         sa.Column("is_demo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "contractor_favorites",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
@@ -96,7 +114,7 @@ def upgrade() -> None:
         *_timestamps(),
         sa.UniqueConstraint("user_id", "contractor_id", name="uq_contractor_favorite"),
     )
-    op.create_table(
+    _create_table_if_missing(
         "work_orders",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("customer_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
@@ -118,7 +136,7 @@ def upgrade() -> None:
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "material_proposals",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
@@ -137,7 +155,7 @@ def upgrade() -> None:
         sa.Column("is_demo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "material_proposal_items",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
@@ -153,7 +171,7 @@ def upgrade() -> None:
         *_timestamps(),
         sa.UniqueConstraint("proposal_id", "product_id", name="uq_proposal_product"),
     )
-    op.create_table(
+    _create_table_if_missing(
         "home_equipment",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
@@ -174,7 +192,7 @@ def upgrade() -> None:
         *_timestamps(),
         sa.UniqueConstraint("work_order_id", "product_id", name="uq_work_order_equipment"),
     )
-    op.create_table(
+    _create_table_if_missing(
         "home_history_events",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
@@ -191,7 +209,7 @@ def upgrade() -> None:
         sa.Column("occurred_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "journey_templates",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("code", sa.String(length=128), nullable=False, unique=True),
@@ -201,7 +219,7 @@ def upgrade() -> None:
         sa.Column("is_demo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "journey_template_steps",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
@@ -221,7 +239,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("template_id", "position", name="uq_journey_template_position"),
         sa.UniqueConstraint("template_id", "code", name="uq_journey_template_code"),
     )
-    op.create_table(
+    _create_table_if_missing(
         "journey_instances",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
@@ -236,7 +254,7 @@ def upgrade() -> None:
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         *_timestamps(),
     )
-    op.create_table(
+    _create_table_if_missing(
         "journey_step_progress",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(

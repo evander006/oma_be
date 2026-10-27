@@ -21,48 +21,60 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Category pages suitable for home furnishing demos.
+# Leaf category pages for home renovation / furnishing (first pages + pagination).
 DEFAULT_CATEGORY_SEEDS: list[dict[str, str]] = [
-    {"id": "lighting", "name": "Освещение", "slug": "osveshchenie", "url": "/nastolnye-lampy-c"},
-    {
-        "id": "lighting-ceiling",
-        "name": "Потолочные светильники",
-        "slug": "potolochnye-svetilniki",
-        "url": "/potolochnye-svetilniki-c",
-    },
+    {"id": "lighting", "name": "Настольные лампы", "slug": "nastolnye-lampy", "url": "/nastolnye-lampy-c"},
+    {"id": "lighting-ceiling", "name": "Потолочные светильники", "slug": "potolochnye-svetilniki", "url": "/potolochnye-svetilniki-c"},
+    {"id": "lighting-chandelier", "name": "Люстры", "slug": "lyustry", "url": "/lyustry-c"},
+    {"id": "lighting-bra", "name": "Бра", "slug": "bra", "url": "/bra-c"},
+    {"id": "lighting-floor", "name": "Торшеры", "slug": "torshery", "url": "/torshery-c"},
+    {"id": "lighting-led", "name": "Светодиодные светильники", "slug": "svetodiodnye-svetilniki", "url": "/svetodiodnye-svetilniki-c"},
     {"id": "furniture", "name": "Мебель", "slug": "mebel", "url": "/mebel-c"},
-    {
-        "id": "plumbing-faucets",
-        "name": "Смесители",
-        "slug": "smesiteli",
-        "url": "/smesiteli-dlya-umyvalnika-c",
-    },
+    {"id": "furniture-living", "name": "Мебель для гостиной", "slug": "mebel-dlya-gostinoy", "url": "/mebel-dlya-gostinoy-c"},
+    {"id": "furniture-bedroom", "name": "Мебель для спальни", "slug": "mebel-dlya-spalni", "url": "/mebel-dlya-spalni-c"},
+    {"id": "furniture-soft", "name": "Мягкая мебель", "slug": "myagkaya-mebel", "url": "/myagkaya-mebel-c"},
+    {"id": "furniture-sofas", "name": "Диваны", "slug": "divany", "url": "/divany-c"},
+    {"id": "furniture-armchairs", "name": "Кресла", "slug": "kresla", "url": "/kresla-c"},
+    {"id": "furniture-beds", "name": "Кровати", "slug": "krovati", "url": "/krovati-c"},
+    {"id": "furniture-mattresses", "name": "Матрасы", "slug": "matrasy", "url": "/matrasy-c"},
+    {"id": "furniture-wardrobes", "name": "Шкафы", "slug": "shkafy-stenki-sektsii", "url": "/shkafy-stenki-sektsii-c"},
+    {"id": "furniture-chests", "name": "Комоды и тумбы", "slug": "komody-i-tumby", "url": "/komody-i-tumby-c"},
+    {"id": "furniture-tables", "name": "Столы", "slug": "stoly", "url": "/stoly-c"},
+    {"id": "furniture-chairs", "name": "Стулья", "slug": "stulya", "url": "/stulya-c"},
+    {"id": "furniture-kitchen", "name": "Мебель для кухни", "slug": "mebel-dlya-kukhni", "url": "/mebel-dlya-kukhni-c"},
+    {"id": "furniture-hallway", "name": "Мебель для прихожих", "slug": "mebel-dlya-prikhozhikh", "url": "/mebel-dlya-prikhozhikh-c"},
+    {"id": "furniture-bathroom", "name": "Мебель для ванной", "slug": "mebel-dlya-vannoy", "url": "/mebel-dlya-vannoy-c"},
+    {"id": "furniture-office", "name": "Офисная мебель", "slug": "mebel-ofisnaya", "url": "/mebel-ofisnaya-c"},
+    {"id": "shelves", "name": "Полки настенные", "slug": "polki-nastennye", "url": "/polki-nastennye-c"},
+    {"id": "shelving", "name": "Стеллажи", "slug": "stellazhi", "url": "/stellazhi-c"},
+    {"id": "plumbing-faucets", "name": "Смесители для умывальника", "slug": "smesiteli-umyvalnik", "url": "/smesiteli-dlya-umyvalnika-c"},
+    {"id": "plumbing-faucets-bath", "name": "Смесители для ванны", "slug": "smesiteli-vanna", "url": "/smesiteli-dlya-vanny-c"},
+    {"id": "plumbing-faucets-kitchen", "name": "Смесители для кухни", "slug": "smesiteli-kukhnya", "url": "/smesiteli-dlya-kukhni-c"},
     {"id": "plumbing-sinks", "name": "Раковины", "slug": "rakoviny", "url": "/rakoviny-c"},
+    {"id": "plumbing-pedestals", "name": "Раковины и пьедесталы", "slug": "rakoviny-pedestaly", "url": "/rakoviny-pedestaly-c"},
     {"id": "bath", "name": "Ванны", "slug": "vanny", "url": "/vanny-c"},
-    {
-        "id": "kitchen-sinks",
-        "name": "Кухонные мойки",
-        "slug": "moyki-kukhonnye",
-        "url": "/moyki-kukhonnye-c",
-    },
-    {
-        "id": "mirrors",
-        "name": "Зеркала",
-        "slug": "zerkala",
-        "url": "/zerkala-c",
-    },
-        {
-            "id": "shelves",
-            "name": "Полки",
-            "slug": "polki",
-            "url": "/polki-nastennye-c",
-        },
-    {
-        "id": "bathroom-accessories",
-        "name": "Аксессуары для ванных",
-        "slug": "aksessuary-dlya-vannykh-komnat",
-        "url": "/aksessuary-dlya-vannykh-komnat-c",
-    },
+    {"id": "bath-screens", "name": "Ванны и экраны", "slug": "vanny-i-ekrany", "url": "/vanny-i-ekrany-c"},
+    {"id": "toilets", "name": "Унитазы", "slug": "unitazy", "url": "/unitazy-c"},
+    {"id": "shower", "name": "Душевые кабины", "slug": "dushevye-kabiny", "url": "/dushevye-kabiny-c"},
+    {"id": "bathroom-accessories", "name": "Аксессуары для ванных", "slug": "aksessuary-vannykh", "url": "/aksessuary-dlya-vannykh-komnat-c"},
+    {"id": "kitchen-sinks", "name": "Кухонные мойки", "slug": "moyki-kukhonnye", "url": "/moyki-kukhonnye-c"},
+    {"id": "kitchen-sinks-steel", "name": "Мойки из стали", "slug": "moyki-iz-stali", "url": "/moyki-iz-stali-c"},
+    {"id": "mirrors", "name": "Зеркала", "slug": "zerkala", "url": "/zerkala-c"},
+    {"id": "wallpaper", "name": "Обои", "slug": "oboi", "url": "/oboi-c"},
+    {"id": "wallpaper-vinyl", "name": "Обои виниловые", "slug": "oboi-vinilovye", "url": "/oboi-vinilovye-c"},
+    {"id": "paint", "name": "Краски", "slug": "kraski", "url": "/kraski-c"},
+    {"id": "paint-interior", "name": "Краски интерьерные", "slug": "kraski-interernye", "url": "/kraski-interernye-c"},
+    {"id": "laminate", "name": "Ламинат", "slug": "laminat", "url": "/laminat-c"},
+    {"id": "parquet", "name": "Паркетная доска", "slug": "parketnaya-doska", "url": "/parketnaya-doska-c"},
+    {"id": "tile-floor", "name": "Плитка напольная", "slug": "plitka-napolnaya", "url": "/plitka-napolnaya-c"},
+    {"id": "tile-wall", "name": "Плитка настенная", "slug": "plitka-nastennaya", "url": "/plitka-nastennaya-c"},
+    {"id": "mosaic", "name": "Мозаика", "slug": "mozaika", "url": "/mozaika-c"},
+    {"id": "doors", "name": "Двери", "slug": "dveri", "url": "/dveri-c"},
+    {"id": "doors-interior", "name": "Двери межкомнатные", "slug": "dveri-mezhkomnatnye", "url": "/dveri-mezhkomnatnye-c"},
+    {"id": "electrical", "name": "Электрика", "slug": "elektrika", "url": "/elektrika-c"},
+    {"id": "sockets", "name": "Розетки и выключатели", "slug": "rozetki-vyklyuchateli", "url": "/rozetki-i-vyklyuchateli-c"},
+    {"id": "decor", "name": "Декор и сувениры", "slug": "dekor", "url": "/predmety-dekora-i-suveniry-c"},
+    {"id": "home-goods", "name": "Товары для дома", "slug": "tovary-dlya-doma", "url": "/tovary-dlya-doma-c"},
 ]
 
 
@@ -155,12 +167,19 @@ class OmaParser:
         verify = self.settings.oma_verify_ssl
         if self.settings.oma_allow_insecure_ssl:
             verify = False
+        # trust_env=False: system HTTP(S)_PROXY often breaks oma.by (HosterGuard).
         self._client = httpx.Client(
-            timeout=self.settings.oma_request_timeout,
+            timeout=httpx.Timeout(self.settings.oma_request_timeout, connect=20.0),
             follow_redirects=True,
             verify=verify,
-            headers={"User-Agent": self.settings.oma_user_agent},
+            trust_env=False,
+            headers={
+                "User-Agent": self.settings.oma_user_agent,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+            },
         )
+        self._warmed_up = False
 
     def close(self) -> None:
         self._client.close()
@@ -180,32 +199,67 @@ class OmaParser:
         digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
         return self.cache_dir / f"{digest}.html"
 
+    def _warmup(self) -> None:
+        if self._warmed_up:
+            return
+        try:
+            self._throttle()
+            self._last_request_at = time.monotonic()
+            self._client.get(self.base + "/")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("oma.by warmup failed: %s", exc)
+        self._warmed_up = True
+
     @retry(wait=wait_exponential(multiplier=1, min=1, max=8), stop=stop_after_attempt(3), reraise=True)
     def fetch_html(self, url: str, use_cache: bool = True) -> str:
         cache_path = self._cache_path(url)
-        if use_cache and cache_path.is_file():
+        if use_cache and cache_path.is_file() and cache_path.stat().st_size > 5000:
             return cache_path.read_text(encoding="utf-8", errors="ignore")
+        self._warmup()
         self._throttle()
         self._last_request_at = time.monotonic()
         resp = self._client.get(url)
         resp.raise_for_status()
         # Prefer declared encoding; fall back to utf-8.
         text = resp.content.decode(resp.encoding or "utf-8", errors="ignore")
+        if len(text) < 5000:
+            raise httpx.HTTPError(f"Suspicious short response for {url} ({len(text)} bytes)")
         cache_path.write_text(text, encoding="utf-8")
         return text
 
     def absolute_url(self, href: str) -> str:
         return urljoin(self.base + "/", href)
 
-    def extract_product_links(self, category_url: str, html: str) -> list[str]:
+    def _links_from_html(self, html: str) -> list[str]:
         soup = BeautifulSoup(html, "lxml")
         links: list[str] = []
         for a in soup.select("a[href]"):
             href = a.get("href") or ""
             if re.search(r"-p/?$", href):
                 links.append(self.absolute_url(href))
+        return links
+
+    def _max_pagen(self, html: str) -> int:
+        pages = [1]
+        for m in re.finditer(r"PAGEN_1=(\d+)", html):
+            try:
+                pages.append(int(m.group(1)))
+            except ValueError:
+                continue
+        return max(pages)
+
+    def extract_product_links(
+        self,
+        category_url: str,
+        html: str,
+        *,
+        max_pages: int = 8,
+        max_links: int = 500,
+    ) -> list[str]:
+        links: list[str] = self._links_from_html(html)
         # Parent categories may only list subcategories ending with -c
         if not links:
+            soup = BeautifulSoup(html, "lxml")
             for a in soup.select("a[href$='-c'], a[href$='-c/']"):
                 href = a.get("href") or ""
                 sub_url = self.absolute_url(href)
@@ -216,9 +270,31 @@ class OmaParser:
                 except Exception as exc:  # noqa: BLE001
                     logger.warning("subcategory fetch failed %s: %s", sub_url, exc)
                     continue
-                links.extend(self.extract_product_links(sub_url, sub_html))
-                if len(links) >= 40:
+                links.extend(
+                    self.extract_product_links(
+                        sub_url, sub_html, max_pages=max_pages, max_links=max_links
+                    )
+                )
+                if len(links) >= max_links:
                     break
+        else:
+            # Paginate Bitrix category listings.
+            last_page = min(self._max_pagen(html), max_pages)
+            base = category_url.split("?")[0]
+            for page in range(2, last_page + 1):
+                if len(links) >= max_links:
+                    break
+                page_url = f"{base}?PAGEN_1={page}"
+                try:
+                    page_html = self.fetch_html(page_url, use_cache=True)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("pagination failed %s: %s", page_url, exc)
+                    break
+                more = self._links_from_html(page_html)
+                if not more:
+                    break
+                links.extend(more)
+
         # de-dupe preserve order
         seen: set[str] = set()
         out: list[str] = []
@@ -226,6 +302,8 @@ class OmaParser:
             if u not in seen:
                 seen.add(u)
                 out.append(u)
+            if len(out) >= max_links:
+                break
         return out
 
     def _to_mm(self, value: float, unit: str | None) -> float:
@@ -469,39 +547,67 @@ class OmaParser:
             logger.warning("image download failed %s: %s", image_url, exc)
             return None
 
+    def _load_existing_products(self) -> list[dict[str, Any]]:
+        path = self.settings.products_json_path
+        if not path.is_file():
+            return []
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, list) else []
+        except (OSError, json.JSONDecodeError):
+            return []
+
+    def _attach_images(
+        self, product: ParsedProduct, report: ImportReport, max_images: int
+    ) -> None:
+        locals_: list[str] = []
+        for idx, img_url in enumerate(product.image_urls[:max_images]):
+            path = self.download_image(product.id, img_url, idx)
+            if path:
+                locals_.append(path)
+                report.images_downloaded += 1
+        product.local_images = locals_
+
     def collect(
         self,
         max_products: int | None = None,
         dry_run: bool = False,
         category_seeds: list[dict[str, str]] | None = None,
+        *,
+        additional: int | None = None,
+        merge_existing: bool = True,
+        max_pages_per_category: int = 8,
+        max_images_per_product: int = 1,
     ) -> ImportReport:
-        max_products = max_products or self.settings.oma_max_products
+        """Collect products.
+
+        If ``additional`` is set with ``merge_existing``, keep current catalog and
+        append that many *new* products. Otherwise collect up to ``max_products``.
+        """
         seeds = category_seeds or DEFAULT_CATEGORY_SEEDS
+        existing = self._load_existing_products() if merge_existing else []
+        existing_by_id = {str(p.get("id")): p for p in existing if p.get("id")}
+        existing_urls = {str(p.get("source_url")) for p in existing if p.get("source_url")}
+
+        if additional is not None:
+            target_new = max(0, additional)
+            target_total = len(existing_by_id) + target_new
+        else:
+            target_total = max_products or self.settings.oma_max_products
+            target_new = max(0, target_total - len(existing_by_id)) if merge_existing else target_total
+
         report = ImportReport(
             dry_run=dry_run,
             started_at=datetime.now(timezone.utc).isoformat(),
         )
-        collected: list[ParsedProduct] = []
-        seen_urls: set[str] = set()
-        per_category_target = max(2, max_products // max(1, len(seeds)))
+        collected_new: list[ParsedProduct] = []
+        seen_urls: set[str] = set(existing_urls)
+        per_category_target = max(4, (target_new // max(1, len(seeds))) + 2)
 
-        for seed in seeds:
-            if len(collected) >= max_products:
-                break
-            cat_url = self.absolute_url(seed["url"])
-            try:
-                html = self.fetch_html(cat_url)
-                links = self.extract_product_links(cat_url, html)
-            except Exception as exc:  # noqa: BLE001
-                msg = f"category failed {cat_url}: {exc}"
-                logger.error(msg)
-                report.errors.append(msg)
-                report.failed += 1
-                continue
-            report.discovered += len(links)
+        def _ingest(seed: dict[str, str], links: list[str], *, cap: int) -> None:
             taken = 0
             for link in links:
-                if len(collected) >= max_products or taken >= per_category_target + 2:
+                if len(collected_new) >= target_new or taken >= cap:
                     break
                 if link in seen_urls:
                     continue
@@ -511,69 +617,94 @@ class OmaParser:
                         link, category_id=seed["id"], subcategory=seed["name"]
                     )
                     report.parsed += 1
+                    if product.id in existing_by_id:
+                        continue
                     if product.validation_status == "validated" or product.image_urls:
                         if not dry_run:
-                            locals_: list[str] = []
-                            for idx, img_url in enumerate(product.image_urls[:3]):
-                                path = self.download_image(product.id, img_url, idx)
-                                if path:
-                                    locals_.append(path)
-                                    report.images_downloaded += 1
-                            product.local_images = locals_
-                        collected.append(product)
+                            self._attach_images(product, report, max_images_per_product)
+                        collected_new.append(product)
                         report.validated += 1
                         taken += 1
+                        if report.validated % 25 == 0:
+                            logger.info(
+                                "progress new=%s/%s total_est=%s",
+                                len(collected_new),
+                                target_new,
+                                len(existing_by_id) + len(collected_new),
+                            )
                     else:
                         report.failed += 1
                         report.errors.append(f"invalid product {link}")
                 except Exception as exc:  # noqa: BLE001
                     report.failed += 1
                     report.errors.append(f"{link}: {exc}")
-                    logger.exception("parse failed for %s", link)
+                    logger.warning("parse failed for %s: %s", link, exc)
 
-        # If distribution left us short, fill from remaining links across seeds.
-        if len(collected) < max_products:
+        for seed in seeds:
+            if len(collected_new) >= target_new:
+                break
+            cat_url = self.absolute_url(seed["url"])
+            try:
+                html = self.fetch_html(cat_url)
+                links = self.extract_product_links(
+                    cat_url,
+                    html,
+                    max_pages=max_pages_per_category,
+                    max_links=per_category_target * 4,
+                )
+            except Exception as exc:  # noqa: BLE001
+                msg = f"category failed {cat_url}: {exc}"
+                logger.error(msg)
+                report.errors.append(msg)
+                report.failed += 1
+                continue
+            report.discovered += len(links)
+            _ingest(seed, links, cap=per_category_target)
+
+        # Fill remaining slots from any leftover links.
+        if len(collected_new) < target_new:
             for seed in seeds:
-                if len(collected) >= max_products:
+                if len(collected_new) >= target_new:
                     break
                 cat_url = self.absolute_url(seed["url"])
                 try:
                     html = self.fetch_html(cat_url)
-                    links = self.extract_product_links(cat_url, html)
+                    links = self.extract_product_links(
+                        cat_url,
+                        html,
+                        max_pages=max_pages_per_category,
+                        max_links=400,
+                    )
                 except Exception:
                     continue
-                for link in links:
-                    if len(collected) >= max_products:
-                        break
-                    if link in seen_urls:
-                        continue
-                    seen_urls.add(link)
-                    try:
-                        product = self.parse_product_page(
-                            link, category_id=seed["id"], subcategory=seed["name"]
-                        )
-                        if not dry_run:
-                            locals_: list[str] = []
-                            for idx, img_url in enumerate(product.image_urls[:3]):
-                                path = self.download_image(product.id, img_url, idx)
-                                if path:
-                                    locals_.append(path)
-                                    report.images_downloaded += 1
-                            product.local_images = locals_
-                        collected.append(product)
-                        report.validated += 1
-                    except Exception as exc:  # noqa: BLE001
-                        report.errors.append(f"{link}: {exc}")
+                _ingest(seed, links, cap=10_000)
 
-        report.products = [asdict(p) for p in collected[:max_products]]
+        merged: list[dict[str, Any]] = list(existing_by_id.values()) if merge_existing else []
+        for p in collected_new:
+            merged.append(asdict(p))
+        if not merge_existing:
+            merged = [asdict(p) for p in collected_new[:target_total]]
+
+        report.products = merged
         report.finished_at = datetime.now(timezone.utc).isoformat()
+        logger.info(
+            "collect done existing=%s new=%s total=%s target_new=%s",
+            len(existing_by_id),
+            len(collected_new),
+            len(merged),
+            target_new,
+        )
         return report
 
     def save_report(self, report: ImportReport, path: Path | None = None) -> Path:
         out = path or (self.settings.data_dir / "products" / "import_report.json")
         out.parent.mkdir(parents=True, exist_ok=True)
+        # Keep report without full product dump to avoid huge files; store summary.
+        summary = asdict(report)
+        summary["products_count"] = len(report.products)
+        summary["products"] = []  # full catalog written separately
         out.write_text(
-            json.dumps(asdict(report), ensure_ascii=False, indent=2),
+            json.dumps(summary, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         products_path = self.settings.products_json_path

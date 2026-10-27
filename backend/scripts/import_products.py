@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 from app.core.config import get_settings
 from app.core.logging import setup_logging
 from app.db.base import Base
+from app.db.schema_utils import ensure_sqlite_product_columns
 from app.db.session import SessionLocal, engine
 from app.integrations.oma.parser import OmaParser
 from app.services.catalog_service import upsert_products_from_json
@@ -20,18 +21,35 @@ from app.services.catalog_service import upsert_products_from_json
 def main() -> int:
     setup_logging()
     parser = argparse.ArgumentParser(description="Import OMA.by products")
-    parser.add_argument("--max-products", type=int, default=20)
+    parser.add_argument("--max-products", type=int, default=None)
+    parser.add_argument(
+        "--additional",
+        type=int,
+        default=None,
+        help="Append this many NEW products to the existing catalog",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-fetch", action="store_true", help="Only import existing JSON")
+    parser.add_argument("--no-merge", action="store_true", help="Replace catalog instead of merging")
+    parser.add_argument("--max-pages", type=int, default=8)
+    parser.add_argument("--max-images", type=int, default=1)
     parser.add_argument("--json", type=Path, default=None)
     args = parser.parse_args()
 
     settings = get_settings()
     Base.metadata.create_all(bind=engine)
+    ensure_sqlite_product_columns(engine)
 
     if not args.skip_fetch:
         with OmaParser(settings) as oma:
-            report = oma.collect(max_products=args.max_products, dry_run=args.dry_run)
+            report = oma.collect(
+                max_products=args.max_products or settings.oma_max_products,
+                additional=args.additional,
+                dry_run=args.dry_run,
+                merge_existing=not args.no_merge,
+                max_pages_per_category=args.max_pages,
+                max_images_per_product=args.max_images,
+            )
             report_path = oma.save_report(report)
             print(f"Import report: {report_path}")
             print(

@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#19132D">
+	<meta name="apple-mobile-web-app-title" content="OMA.by">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" href="/favicon.svg">
+	<link rel="icon" href="/favicon.ico" type="image/x-icon">
+	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
+	
+	<meta name="application-name" content="OMA.by">
+	<meta name="theme-color" content="#19132D">
+	<meta name="msapplication-TileColor" content="#19132D" />
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png" />
+	<meta name="mailru-verification" content="f37e9429d920dbbd" />
+    <meta property="fb:app_id" content="356000454753235"/>
+
+    
+    
+ 	<link rel="preload" href="/local/assets/dist/fonts/Roboto-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/local/assets/dist/fonts/Roboto-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/local/assets/dist/fonts/Roboto-Bold.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" fetchpriority="high" href="/local/assets/dist/css/styles.min.css?38b0043ccf588449bc3b1085f4013724">
+
+    
+
+
+
+
+
+
+<script type="application/ld+json">[{"@context":"https:\/\/schema.org","@type":"WebSite","url":"https:\/\/www.oma.by","sameAs":["https:\/\/www.youtube.com\/channel\/UCMdWp15ZPSJqfVHbH_rGCsA","https:\/\/vk.com\/oma_by","https:\/\/www.facebook.com\/www.oma.by\/","https:\/\/ok.ru\/omaby","https:\/\/www.instagram.com\/oma.by\/"],"potentialAction":{"@type":"SearchAction","target":"https:\/\/oma.by\/search\/?q={q}","query-input":"required name=q"}},{"@context":"https:\/\/schema.org\/","@type":"Organization","name":"\u041e\u041e\u041e \u041e\u041c\u0410","email":"info@oma.by","image":"https:\/\/www.oma.by\/local\/images\/logo.png","url":"https:\/\/www.oma.by\/","address":{"@type":"PostalAddress","addressCountry":"BY","telephone":"(375) 29 536 45 00"}}]</script>
+<link rel="prefetch" href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605" as="image" type="image/svg+xml">
+<link rel="canonical" href="https://www.oma.by" />
+<meta property="og:url" content="https://www.oma.by/"/> 
+<meta property="og:type" content="website"/> 
+<meta property="og:site_name" content="Гипермаркет ОМА"/> 
+<meta property="og:locale" content="ru_RU"/> 
+<meta property="og:title" content="Гипермаркет ОМА"/> 
+<meta property="og:image" content="https://www.oma.by/upload/logo_opengraph.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+
+
+
+<script data-skip-moving="true">window.__OMA_SVG_SPRITE__={"basePath":"\/local\/assets\/dist\/icons\/","index":{"a1":"buyers","address":"buyers","brigadi":"buyers","clock":"buyers","delivery":"buyers","delivery-other-conditions":"buyers","infopages-search":"buyers","life":"buyers","mts":"buyers","onliner":"buyers","operator-a1-logo":"buyers","operator-life-logo":"buyers","operator-mts-logo":"buyers","pay-by-cash":"buyers","pay-online":"buyers","phone":"buyers","post-pickup":"buyers","schedule":"buyers","shopping-cart":"buyers","unload-lift":"buyers","warning-mark":"buyers","app-store":"footer","google-play":"footer","pay-apple-pay":"footer","pay-belcart":"footer","pay-bepaid":"footer","pay-google-pay":"footer","pay-halva":"footer","pay-mastercard":"footer","pay-visa":"footer","social-facebook":"footer","social-instagram":"footer","social-odnoklassniki":"footer","social-pinterest":"footer","social-telegram":"footer","social-tiktok":"footer","social-viber":"footer","social-vkontakte":"footer","social-youtube":"footer","arrow_right":"helpful","arrow_top":"helpful","date":"helpful","link":"helpful","link-gray":"helpful","share":"helpful","share-gray":"helpful","telegram":"helpful","telegram-gray":"helpful","update":"helpful","viber":"helpful","viber-gray":"helpful","video":"helpful","arrow_down":"site","arrow_left":"site","available-rent-icon":"site","btn-calculator":"site","catalog-icon-1":"site","catalog-icon-10":"site","catalog-icon-11":"site","catalog-icon-12":"site","catalog-icon-13":"site","catalog-icon-14":"site","catalog-icon-2":"site","catalog-icon-3":"site","catalog-icon-4":"site","catalog-icon-5":"site","catalog-icon-6":"site","catalog-icon-7":"site","catalog-icon-8":"site","catalog-icon-9":"site","catalog-icon-krepezh":"site","catalog-icon-prokat":"site","catalog-icon-water":"site","catalog-sort":"site","check":"site","checkbox-check":"site","checkbox-indeterminate":"site","chevron":"site","chevron-down":"site","christmas-tree-icon":"site","copied":"site","cursor-fast-click":"site","external-link":"site","eye":"site","fire":"site","icon__adult":"site","icon__adv":"site","icon__arrow-left":"site","icon__arrow-right":"site","icon__bear":"site","icon__beauty":"site","icon__cart-add":"site","icon__category":"site","icon__checkout-arrow":"site","icon__clock":"site","icon__close":"site","icon__credit-card":"site","icon__database":"site","icon__exclamation":"site","icon__eye":"site","icon__eye-off":"site","icon__filter":"site","icon__food":"site","icon__grid-view":"site","icon__heart":"site","icon__heart-header":"site","icon__history":"site","icon__home":"site","icon__list":"site","icon__list-view":"site","icon__location":"site","icon__lock":"site","icon__log-out":"site","icon__mailing":"site","icon__minus":"site","icon__mouse-pointer":"site","icon__mouse-pointer-2":"site","icon__percent":"site","icon__plus":"site","icon__question":"site","icon__search":"site","icon__search-main":"site","icon__settings":"site","icon__shopping-cart":"site","icon__similar":"site","icon__sort":"site","icon__stars":"site","icon__subtract-2":"site","icon__success":"site","icon__user":"site","icon__watch":"site","icon_plants":"site","icon-close":"site","icon-close-white":"site","icon-error":"site","icon-success":"site","icon-warning":"site","left-corner":"site","like":"site","menu-mobile-catalog-icon":"site","menu-mobile-city-icon":"site","menu-mobile-close":"site","menu-mobile-list-icon":"site","menu-mobile-news-icon":"site","menu-mobile-parts-icon":"site","menu-mobile-previous":"site","menu-mobile-sales-icon":"site","menu-mobile-user-icon":"site","p360-chevron":"site","p360-download":"site","right-corner":"site","rounded-check":"site","sand-clock":"site","small-stock-icon":"site","unavailable-rent-icon":"site","warning-banner":"site","wave":"site","argentina":"flags","armenia":"flags","australia":"flags","austria":"flags","bangladesh":"flags","bosnia":"flags","cambodia":"flags","canada":"flags","chile":"flags","cyprus":"flags","denmark":"flags","egypt":"flags","georgia":"flags","greece":"flags","hongkong":"flags","indonesia":"flags","iran":"flags","croatia":"flags","ireland":"flags","kazakhstan":"flags","kyrgyzstan":"flags","latvia":"flags","libya":"flags","luxembourg":"flags","macedonia":"flags","morocco":"flags","newzealand":"flags","norway":"flags","pakistan":"flags","philippines":"flags","qatar":"flags","saudiarabia":"flags","singapore":"flags","slovakia":"flags","southafrica":"flags","srilanka":"flags","tajikistan":"flags","tunisia":"flags","uzbekistan":"flags","vietnam":"flags","belarus":"flags","belgium":"flags","brazil":"flags","bulgaria":"flags","china":"flags","czech":"flags","estonia":"flags","europe":"flags","finland":"flags","france":"flags","moldova":"flags","germany":"flags","hungary":"flags","india":"flags","israel":"flags","italy":"flags","japan":"flags","korea":"flags","lithuania":"flags","malaysia":"flags","netherlands":"flags","haiti":"flags","poland":"flags","romania":"flags","russia":"flags","slovenia":"flags","sweden":"flags","switzerland":"flags","taiwan":"flags","thailand":"flags","turkey":"flags","uae":"flags","uk":"flags","ukraine":"flags","usa":"flags"},"versions":{"buyers":"61cddf248ba75e6dd6a7a00f164ab605","footer":"61cddf248ba75e6dd6a7a00f164ab605","helpful":"61cddf248ba75e6dd6a7a00f164ab605","site":"61cddf248ba75e6dd6a7a00f164ab605","flags":"61cddf248ba75e6dd6a7a00f164ab605"}};</script>
+<script data-skip-moving="true" >
+    let omaParams = {
+        ajaxLoading: false,
+        searchHistory: {
+            storageLimit: 500,
+            showLimit: 5,
+            showLimitMobile: 3
+        }
+    };
+</script>
+
+
+    <title>Гипермаркет ОМА</title>
+
+    </head><body class="main-page">
+<div class="overlay js-overlay js-overlay-shop"></div>
+
+
+<div class="mobile-menu js-mobile-menu">
+
+    <div class="mobile-menu_level mobile-menu_level__0 js-mobile-menu-level" data-level="0">
+        <div class="mobile-menu-item mobile-menu-item__back mobile-menu-item__no-icon">
+            <span class="mobile-menu-item_txt">Меню</span>
+            <button class="mobile-menu_close-btn css-menu-icon-parent open js-mobile-menu-close-btn">
+                <svg width="24" height="24">
+                    <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-close"></use>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mobile-menu-item-block mobile-menu-item mobile-menu-item__has-icon-lvl1 js-mobile-catalog-open">
+            <svg width="32" height="32">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-catalog-icon"></use>
+            </svg>
+            <span class="mobile-menu-item_txt">Каталог товаров</span>
+        </div>
+
+        <a href="/sales/" class="mobile-menu-item mobile-menu-item__has-icon-lvl1">
+            <img src="/local/images/icons/mobile-menu-sales.svg?v=4" width="32" height="32" alt="">
+            <span class="mobile-menu-item_txt">Акции</span>
+        </a>
+
+        <a href="/listovka/" class="mobile-menu-item mobile-menu-item__has-icon-lvl1">
+            <svg width="32" height="32">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-list-icon"></use>
+            </svg>
+            <span class="mobile-menu-item_txt">Листовка</span>
+        </a>
+
+        <a href="/news/" class="mobile-menu-item mobile-menu-item__has-icon-lvl1">
+            <svg width="32" height="32">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-news-icon"></use>
+            </svg>
+            <span class="mobile-menu-item_txt">Новости</span>
+        </a>
+
+        <a href="/buyers/payment/#credit" class="mobile-menu-item mobile-menu-item__has-icon-lvl1">
+            <svg width="32" height="32">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-parts-icon"></use>
+            </svg>
+            <span class="mobile-menu-item_txt">Оплата частями</span>
+        </a>
+
+
+        <a class="sl-menu-app-banner" href="https://to.imshop.io/install/oma">
+            <p class="sl-menu-app-banner-text">Мобильное<br>приложение Ома</p>
+            <picture class="sl-menu-app-banner-img">
+                <source media="(max-width:385px)" srcset="/local/images/mobile-banner/mobile-banner-385px.png">
+                <source media="(max-width:350px)" srcset="/local/images/mobile-banner/mobile-banner-350px.png">
+                <img src="/local/images/mobile-banner/mobile-banner.png" alt="Мобильное приложение">
+            </picture>
+            <div class="sl-menu-app-banner-button">Скачать</div>
+        </a>
+
+        <div class="mobile-menu-item-block mobile-menu-content">
+            
+                <a href="/personal/" class="mobile-menu-item mobile-menu-item__has-icon-lvl1 ">
+                            <svg width="32" height="32">
+                    <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-user-icon"></use>
+                </svg>
+                        <span class="mobile-menu-item_txt">Мой кабинет</span>
+        </a>
+                    <a href="#" class="mobile-menu-item mobile-menu-item__has-icon-lvl1 ">
+                            <svg width="32" height="32">
+                    <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-city-icon"></use>
+                </svg>
+                        <span class="mobile-menu-item_txt">Ваш регион: <b class="dotted-link mobile-menu-change-city js_find_city_open">Минск</b></span>
+        </a>
+                    <a href="/about/departments/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                        <span class="mobile-menu-item_txt">Адреса магазинов</span>
+        </a>
+                    <div class="mobile-menu-item js-mobile-menu-btn     mobile-menu-item_no_has-icon" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__4">
+                        <span class="mobile-menu-item_txt">Покупателям</span>
+
+                    </div>
+        
+                    <div class="mobile-menu-item js-mobile-menu-btn     mobile-menu-item_no_has-icon" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__22">
+                        <span class="mobile-menu-item_txt">Партнерам</span>
+
+                    </div>
+        
+                    <div class="mobile-menu-item js-mobile-menu-btn     mobile-menu-item_no_has-icon" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__29">
+                        <span class="mobile-menu-item_txt">О компании</span>
+
+                    </div>
+        
+    
+        </div>
+    </div>
+
+    <div class="mobile-menu_level mobile-menu_level__1 js-mobile-menu-level closed" data-level="1">
+                <div class="mobile-menu_container js-mobile-menu-container" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__4">
+
+            <div class="mobile-menu-item mobile-menu-item__back js-mobile-menu-back">
+                <span class="mobile-menu-item_left-arrow">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-previous"></use>
+                    </svg>
+                </span>
+                <span class="mobile-menu-item_txt">Покупателям</span>
+                <button class="mobile-menu_close-btn css-menu-icon-parent open js-mobile-menu-close-btn">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-close"></use>
+                    </svg>
+                </button>
+            </div>
+
+                                                                            <a href="#" data-popup-url="/reviews/form.php" class="mobile-menu-item mobile-menu-item_no_has-icon js-open-popup">
+                        <span class="mobile-menu-item_txt">Форма обратной связи</span>
+                    </a>
+                                                                                <a href="/buyers/delivery/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Доставка</span>
+                    </a>
+                                                                                <a href="/buyers/samovyvoz/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Самовывоз</span>
+                    </a>
+                                                                                <a href="/buyers/payment/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Способы оплаты</span>
+                    </a>
+                                                                                <a href="/buyers/payment/#credit" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Оплата частями</span>
+                    </a>
+                                                                                <a href="/sales/rodnae-svaye/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Роднае, сваё</span>
+                    </a>
+                                                                                <a href="/buyers/services/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Услуги</span>
+                    </a>
+                                                                                <a href="/buyers/services/masters/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Мастера</span>
+                    </a>
+                                                                                <a href="/buyers/services/service-centers/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Сервисные центры</span>
+                    </a>
+                                                                                <a href="/buyers/warranty/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Возврат и гарантия</span>
+                    </a>
+                                                                                <a href="/buyers/app-submission/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Порядок подачи обращений</span>
+                    </a>
+                                                                                <a href="/buyers/discount/balans/#card-info" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Программа лояльности</span>
+                    </a>
+                                                                                <a href="/buyers/questions/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Вопросы и ответы</span>
+                    </a>
+                                                                                <a href="/buyers/certificates/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Подарочные карты</span>
+                    </a>
+                                                                                <a href="/news/mobile-app/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Мобильное приложение</span>
+                    </a>
+                                                                                <a href="/b2b/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Покупай как юр. лицо</span>
+                    </a>
+                                                                                <a href="/buyers/services/protection360/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Расширенная гарантия</span>
+                    </a>
+                                    </div>
+                <div class="mobile-menu_container js-mobile-menu-container" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__22">
+
+            <div class="mobile-menu-item mobile-menu-item__back js-mobile-menu-back">
+                <span class="mobile-menu-item_left-arrow">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-previous"></use>
+                    </svg>
+                </span>
+                <span class="mobile-menu-item_txt">Партнерам</span>
+                <button class="mobile-menu_close-btn css-menu-icon-parent open js-mobile-menu-close-btn">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-close"></use>
+                    </svg>
+                </button>
+            </div>
+
+                                                                            <a href="/partners/become-partner/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Как стать партнером</span>
+                    </a>
+                                                                                <a href="/partners/contacts/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Реквизиты компании</span>
+                    </a>
+                                                                                <a href="https://b2b.oma.by/about/partners/tendery/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Тендеры</span>
+                    </a>
+                                                                                <a href="/partners/franchayzing/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Франчайзинг</span>
+                    </a>
+                                                                                <a href="https://omapro.by/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Перейти на сайт для юр. лиц</span>
+                    </a>
+                                                                                <a href="/partners/gruzoperevozki/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Грузоперевозчикам</span>
+                    </a>
+                                    </div>
+                <div class="mobile-menu_container js-mobile-menu-container" data-mobile-menu="menu743ec14b0c4c3d4d3c975a5285233f39__29">
+
+            <div class="mobile-menu-item mobile-menu-item__back js-mobile-menu-back">
+                <span class="mobile-menu-item_left-arrow">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-previous"></use>
+                    </svg>
+                </span>
+                <span class="mobile-menu-item_txt">О компании</span>
+                <button class="mobile-menu_close-btn css-menu-icon-parent open js-mobile-menu-close-btn">
+                    <svg width="24" height="24">
+                        <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-close"></use>
+                    </svg>
+                </button>
+            </div>
+
+                                                                            <a href="/about/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">О компании</span>
+                    </a>
+                                                                                <a href="/news/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Новости</span>
+                    </a>
+                                                                                <a href="/about/rabota-v-oma/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Работа в ОМА</span>
+                    </a>
+                                                                                <a href="/reviews/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Отзывы об ОМА</span>
+                    </a>
+                                                                                <a href="/about/blagotvoritelnost/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Благотворительность</span>
+                    </a>
+                                                                                <a href="/contacts/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">Контакты</span>
+                    </a>
+                                                                                <a href="/about/oma-kstati/" class="mobile-menu-item mobile-menu-item_no_has-icon ">
+                                                <span class="mobile-menu-item_txt">ОМА КСТАТИ</span>
+                    </a>
+                                    </div>
+            </div>
+
+
+    <div
+        class="mobile-catalog-menu"
+        data-mobile-catalog
+        data-menu-url="/api-v2/catalog/menu"
+        data-sprite-back="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-previous"
+        data-sprite-close="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#menu-mobile-close"
+    ></div>
+</div>
+
+            <div id="loyalty-redirect" class="loyalty-redirect" onclick="window.location.href='/personal/discount_programs/'">Зарегистрировать карту</div>
+    
+<header class="page-header">
+    <div class="header-top clearfix">
+        <div class="container header-top_container">
+
+            <div class="header-top_item header-top_item__left header-top_item__half-dd left-col" style="position: relative;">
+                <span class="header-top_item-sec-txt hidden-xs">Выбрано: </span>
+                <div class="dropdown-group dropdown-group__popup-look">
+                    <div><span class="header-top_item-icon icon icon__address"></span></div>
+                    <span class="header-top_item-value link js-open-popup js_no_print_mode js_find_city" data-popup-url="/local/ajax/popup/city.php?back_url=/&location=">
+                                            Минск                    </span>
+                </div>
+
+                                    <div class="header-top_item-value-dd small-dropdown city-selection-popup js-dropdown-body js_default-city-dropdown">
+                        <span class="small-dropdown_subtitle" style="margin-bottom: 10px;">Ваш населенный пункт Минск?</span>
+                        <span class="small-dropdown_btn-row-alt">
+                            <button type="button" data-city="17109" class="btn btn__blue js-default-city" style="padding: 10px 15px;height: 30px;line-height: 10px;font-weight: normal;font-size: 14px;">Да</button>
+                            <span class="link gray-link js_find_city_open" style="margin-left: 15px;">Нет, другой</span>
+                        </span>
+                    </div>
+                            </div>
+
+
+            <div class="header-top_item header-top_item__left header-top_item__half-dd header-top_item__w-icon header-top_item__phone">
+                <span class="header-top_item-icon icon icon__phone"></span>
+<span class="header-top_item-sec-txt hidden-sm">Контакт-центр: </span>
+<div class="dropdown-group js-dropdown-group js-dropdown-group-use-overlay">
+    <span class="header-top_item-value header-top_item-value__dropdown link js-dropdown-btn no-border">
+                     536-45-00            </span>
+
+    <div class="header-top_item-value-dd small-dropdown js-dropdown-body">
+
+        <span class="small-dropdown_subtitle">Единая справочная служба:</span>
+                    <span class="small-dropdown_secondary">Пн-Вс: с 08:30 до 21:00</span>
+        
+
+                                    <a href="tel:5364500" class="bold-phone-link icon-reflex-parent"><span class="icon icon__phone"></span><span class="icon icon__phone icon__reflex"></span> 536-45-00</a>
+            
+                                    <span class="icon-reflex-parent">(A1, life:), МТС) </span>
+            
+                                    <a href="tel:+375173301010" class="bold-phone-link icon-reflex-parent"><span class="icon icon__phone"></span><span class="icon icon__phone icon__reflex"></span> +375 (17) 330-10-10</a>
+            
+                                    <span class="icon-reflex-parent">(Городской)</span>
+            
+        
+        
+        
+        
+		    </div>
+
+</div>            </div>
+
+            
+        
+        <a href="/about/departments/" class="header-top_item   header-top_item__w-icon icon-reflex-parent"   >
+                            <span class="header-top_item-icon icon icon__address"></span>
+                <span class="header-top_item-icon icon icon__address icon__reflex"></span>
+            
+            <span class="header-top_item-txt hidden-sm">Адреса магазинов</span>
+                            <span class="header-top_item-txt hidden visible-sm-in">Магазины</span>
+                    </a>
+
+
+    
+        
+        <div class="header-top_item header-top_item__dropdown dropdown-group js-dropdown-group js-dropdown-group-use-overlay hidden-xs">
+            <span class="header-top_item-txt js-dropdown-btn">Покупателям</span>
+            <div class="small-dropdown small-dropdown__drop-left-1100 js-dropdown-body">
+                                                                                <a href="#" data-popup-url="/reviews/form.php" class="small-dropdown_link js-open-popup">Форма обратной связи</a>
+                                                                                                    <a href="/buyers/delivery/" class="small-dropdown_link">Доставка</a>
+                                                                                                    <a href="/buyers/samovyvoz/" class="small-dropdown_link">Самовывоз</a>
+                                                                                                    <a href="/buyers/payment/" class="small-dropdown_link">Способы оплаты</a>
+                                                                                                    <a href="/buyers/payment/#credit" class="small-dropdown_link">Оплата частями</a>
+                                                                                                    <a href="/sales/rodnae-svaye/" class="small-dropdown_link">Роднае, сваё</a>
+                                                                                                    <a href="/buyers/services/" class="small-dropdown_link">Услуги</a>
+                                                                                                    <a href="/buyers/services/masters/" class="small-dropdown_link">Мастера</a>
+                                                                                                    <a href="/buyers/services/service-centers/" class="small-dropdown_link">Сервисные центры</a>
+                                                                                                    <a href="/buyers/warranty/" class="small-dropdown_link">Возврат и гарантия</a>
+                                                                                                    <a href="/buyers/app-submission/" class="small-dropdown_link">Порядок подачи обращений</a>
+                                                                                                    <a href="/buyers/discount/balans/#card-info" class="small-dropdown_link">Программа лояльности</a>
+                                                                                                    <a href="/buyers/questions/" class="small-dropdown_link">Вопросы и ответы</a>
+                                                                                                    <a href="/buyers/certificates/" class="small-dropdown_link">Подарочные карты</a>
+                                                                                                    <a href="/news/mobile-app/" class="small-dropdown_link">Мобильное приложение</a>
+                                                                                                    <a href="/b2b/" class="small-dropdown_link">Покупай как юр. лицо</a>
+                                                                                                    <a href="/buyers/services/protection360/" class="small-dropdown_link">Расширенная гарантия</a>
+                                     
+            </div>
+        </div>
+
+    
+        
+        <div class="header-top_item header-top_item__dropdown dropdown-group js-dropdown-group js-dropdown-group-use-overlay hidden-xs">
+            <span class="header-top_item-txt js-dropdown-btn">Партнерам</span>
+            <div class="small-dropdown small-dropdown__drop-left-1100 js-dropdown-body">
+                                                                                <a href="/partners/become-partner/" class="small-dropdown_link">Как стать партнером</a>
+                                                                                                    <a href="/partners/contacts/" class="small-dropdown_link">Реквизиты компании</a>
+                                                                                                    <a href="https://b2b.oma.by/about/partners/tendery/" class="small-dropdown_link">Тендеры</a>
+                                                                                                    <a href="/partners/franchayzing/" class="small-dropdown_link">Франчайзинг</a>
+                                                                                                    <a href="https://omapro.by/" class="small-dropdown_link">Перейти на сайт для юр. лиц</a>
+                                                                                                    <a href="/partners/gruzoperevozki/" class="small-dropdown_link">Грузоперевозчикам</a>
+                                     
+            </div>
+        </div>
+
+    
+        
+        <div class="header-top_item header-top_item__dropdown dropdown-group js-dropdown-group js-dropdown-group-use-overlay ">
+            <span class="header-top_item-txt js-dropdown-btn">Компания ОМА</span>
+            <div class="small-dropdown small-dropdown__drop-left-1100 js-dropdown-body">
+                                                                                <a href="/about/" class="small-dropdown_link">О компании</a>
+                                                                                                    <a href="/news/" class="small-dropdown_link">Новости</a>
+                                                                                                    <a href="/about/rabota-v-oma/" class="small-dropdown_link">Работа в ОМА</a>
+                                                                                                    <a href="/reviews/" class="small-dropdown_link">Отзывы об ОМА</a>
+                                                                                                    <a href="/about/blagotvoritelnost/" class="small-dropdown_link">Благотворительность</a>
+                                                                                                    <a href="/contacts/" class="small-dropdown_link">Контакты</a>
+                                                                                                    <a href="/about/oma-kstati/" class="small-dropdown_link">ОМА КСТАТИ</a>
+                                     
+            </div>
+        </div>
+
+    
+        </div>
+    </div>
+
+<div class="header-gradient">
+    <nav class="header-middle js-fix-header" >
+        <div class="container header-middle_container">
+            <div class="header-middle_table">
+
+                                <div class="header-middle_item header-middle_item__menu js-header-menu-btn-wrap">
+                    <button type="button" aria-label="Меню" class="menu-button css-menu-icon-parent js-header-menu-btn">
+                        <span class="css-menu-icon"></span>
+                    </button>
+                </div>
+
+                                <div class="header-middle_item header-middle_item__back">
+                    <button type="button" aria-label="Назад"  onclick="history.back();" class="header-button-back js-header-button-back">
+                        <span class="icon icon__gray-chevron-left-big"> </span>
+                    </button>
+                </div>
+
+                                <div class="header-middle_item header-middle_item__category left-col">
+                    Гипермаркет ОМА                </div>
+
+                                <div class="header-middle_item header-middle_item__logo left-col">
+                    <a href="/" class="main-logo" aria-label="logo"></a>
+                </div>
+
+                                                <div class="header-middle_item header-middle_item__expand header-middle_item__search">
+                    <div class="one-row-form header-search-form custom-container-oma">
+                        <div class="one-row-form_input-cell">
+                            <input type="text" name="q" readonly="readonly" value="" autocomplete="off" class="white-input search-input one-row-form_input js-search_open-panel" placeholder="">
+                            <button type="button" class="search-input-close js-clear-top-search" aria-label="Закрыть поисковую строку" ></button>
+                        </div>
+                        <div class="one-row-form_btn-cell">
+                            <button type="submit" class="btn btn__orange btn__search one-row-form_btn" aria-label="Поиск товаров">
+                                <span class="icon icon__search"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                                <div class="header-middle_item header-middle_item__right header-middle_item__visible-fixed-xs">
+                        <span class="complex-link js-toggle-search-mobile">
+                            <span class="complex-link_icon">
+                                <span class="icon icon__search-top"></span>
+                            </span>
+                        </span>
+                </div>
+
+
+
+                <div class="header-middle_item-table">
+    <div class="header-middle_item header-middle_item__right">
+        <div class="dropdown-group dropdown-group__gray-arrow " data-dropdown-group-rel="header-middle">
+
+            
+            <a href="#"
+               target=""
+               aria-label="Вход в ЛК"
+               class="complex-link js-open-auth-form"
+                 >
+                <span class="complex-link_icon">
+                    <span class="icon icon__person"></span>
+                </span>
+
+                                                    <span class="complex-link_content">
+                        <span class="complex-link_top-txt">Вход или</span>
+                        <span class="complex-link_bottom-txt">Регистрация</span>
+                    </span>
+                            </a>
+
+            
+        </div>
+    </div>
+</div>
+                
+    <div class="header-middle_item header-middle_item__right header-middle_item__favorite wishlist-head-block header-middle_item__visible-unfixed-xs">
+        <div class="dropdown-group js-dropdown-group js-dropdown-group-use-overlay"
+             data-dropdown-group-rel="header-middle">
+
+                            <a href="/wishlist/?auth_form=y" aria-label="Авторизация" class="complex-link complex-link__dropdown js-dropdown-btn">
+                                <span class="complex-link_icon">
+                        <svg class="icon__heart-header">
+                            <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__heart-header"></use>
+                       </svg>
+                    </span>
+                    <span class="complex-link_content">
+                        <span class="complex-link_bottom-txt">Избранное</span>
+                    </span>
+                </a>
+                <div class="complex-link-dd wishlist-dropdown small-dropdown js-dropdown-body" style="display: none;">
+                                            <p class="small-dropdown_secondary no-auth">Чтобы создавать и просматривать списки избранного, войдите на сайт или зарегистрируйтесь <br/><a class="style-solid" href="/news/spisok-pokupok-vash-novyy-pomoshchnik-v-remonte/">Что такое "Списки избранного"?</a></p>
+                        <div class="small-dropdown_btn-row-alt">
+                            <a type="button" class="btn btn__blue btn__block"
+                               href="/?auth_form=y">Войти на сайт</a>
+                        </div>
+                                    </div>
+        </div>
+    </div>
+
+    <div class="fixed-message fixed-message__whishlist call-success-message " style="display: none;">
+        <div class="fixed-message_content">
+            <div class="fixed-message_txt"></div>
+        </div>
+    </div>
+
+
+                                <div class="header-middle_item header-middle_item__right basket-small-js-head">
+                    
+<form id="basketSubmitAction" class="replaceFormBitixAjax hide"  action="/" method="post" >
+        <input type="hidden" class="setBasketValues" name="BASKET_ADD" value="" />
+
+    <input type="hidden" class="setBasketValues" name="BASKET_UPDATE" value="" />
+    <input type="hidden" class="setBasketValues" name="COUNT" value="" />
+    <input type="hidden" class="setBasketValues" name="BASKET_DELETE" value="" />
+    <input type="hidden" class="setBasketValues" name="GROUPDELETE" value="" />
+    <input type="hidden" class="setBasketValues" name="INBOX" value="" />
+    <input type="hidden" class="setBasketValues" name="TYPE" value="" />
+    <input type="hidden" class="setBasketValues" name="PRODUCTS" value="" />
+    <input type="hidden" class="setBasketValues" name="SUPPORT_POPUP" value="" />
+    <input type="hidden" class="setBasketValues" name="RECOMMENDATION" value="" />
+    <input type="hidden" class="setBasketValues" name="HIDE_NOTIFICATION" value="" />
+    <input type="hidden" class="setBasketValues" name="TYPE_CREDIT" value="" />
+
+    <input type="hidden" class="setBasketValues" name="SEARCH_QUERY" value="" />
+    <input type="hidden" class="setBasketValues" name="SEARCH_QUERY_ID" value="" />
+    <input type="hidden" class="setBasketValues" name="SEARCH_FROM" value="" />
+
+
+</form>
+
+<div class="dropdown-group js-dropdown-group js-dropdown-group-use-overlay js_small_basket" data-dropdown-group-rel="header-middle">
+
+  <a id="composite-order-btn-smalcart" aria-label="Корзина" href="/order/" class="complex-link complex-link__dropdown js-dropdown-btn">
+                <span class="complex-link_icon">
+                <span class="icon icon__basket"></span>
+            </span>
+          <span class="complex-link_content">
+                <span class="complex-link_bottom-txt">Корзина</span>
+            </span>
+          </a>
+
+	<div class="complex-link-dd small-dropdown small-dropdown__basket js-dropdown-body" >
+
+		<!--'start_frame_cache_Rr4O4K'-->
+                            <div class="black">
+                <b>Ваша корзина&nbsp;пуста<br>
+ </b><br>
+ Добавьте товары в корзину<b><br>
+ </b>            </div>
+        		<!--'end_frame_cache_Rr4O4K'-->    </div>
+</div>
+
+
+
+
+
+                </div>
+
+                                <div class="header-middle_item header-middle_item__right header-middle_item__ellipsis">
+                    <span class="complex-link js-toggle-links-block">
+                        <span class="complex-link_icon">
+                            <span class="vertical-ellipsis">⋮</span>
+                        </span>
+                    </span>
+                </div>
+            </div>
+            <div class="header-middle_item header-middle_item_links-block js_links-block">
+                <div><a href="/" class="links-block_link">Главная</a></div>
+                <div><a href="/wishlist/" class="links-block_link">Список покупок</a></div>
+                <div><a href="tel:536-45-00" class="links-block_link">Позвонить</a></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-bottom">
+        <div class="container">
+            <div class="header-menu clearfix">
+                <div class="header-menu_item header-menu_item__btn left-col">
+                    <a href="/catalog/" class="catalog-btn css-menu-icon-hover-parent js-header-menu-btn-static">
+                        <span class="catalog-btn_icon">
+                            <span class="css-menu-icon"></span>
+                        </span>
+                        <span class="catalog-btn_text">Весь каталог</span>
+                    </a>
+                </div>
+
+                <div class="header-menu_items">
+
+                    <!--colors: orange red green blue purple black default: black-->
+
+            <div class="header-menu_item ">
+
+        <a href="/sales/"
+           class="header-menu_item-link red  ">
+
+                        🔥 ВСЕ АКЦИИ                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/sales/stroyka-po-luchshim-tsenam/"
+           class="header-menu_item-link darkblue2  ">
+
+                        💣Супер цены                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/sales/akcionnye-predlozheniya/"
+           class="header-menu_item-link purple  ">
+
+                        Ликвидация!                            <div class="product-item_timer menu-timer hide" title="До начала акции">
+                    <div class="timer-pill timer-pill__stretch js-timer border_purple"
+                         data-end="2025-04-13T23:59:00">
+                        <div class="timer-icon border_purple">
+                            <span class="timer-icon_minute background_purple"></span>
+                            <span class="timer-icon_second background_purple"></span>
+                        </div>
+                        <span class="timer-pill_time-cell">
+                            <span class="js-timer-days purple"><span></span>д.</span>
+                            <span class="js-timer-hours purple"><span></span><span class="time-cell_separate">:</span></span>
+                            <span class="js-timer-minutes purple"><span></span><span class="time-cell_separate">:</span></span>
+                            <span class="js-timer-seconds purple"><span></span></span>
+                        </span>
+                    </div>
+                </div>
+                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/sales/top-prodazh/"
+           class="header-menu_item-link red  ">
+
+                        Топ продаж                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/buyers/payment/#credit"
+           class="header-menu_item-link darkorange  ">
+
+                        Оплата частями                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/news/"
+           class="header-menu_item-link green  ">
+
+                        Новости                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/listovka/"
+           class="header-menu_item-link darkblue2  ">
+
+                        Листовка                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="/sales/utsenka/"
+           class="header-menu_item-link darkorange  header-menu_item-link__has-icon">
+
+                            <span class="header-menu_item-icon icon icon__percent"></span>
+                <span class="header-menu_item-icon header-menu_item-icon__alt icon icon__percent-gray"></span>
+                        Уценка                    </a>
+    </div>
+
+
+            <div class="header-menu_item ">
+
+        <a href="https://b2b.oma.by"
+           class="header-menu_item-link black  ">
+
+                        B2B                    </a>
+    </div>
+
+
+
+                    <div class="header-menu_shadow"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</header>
+
+<div class="v-slide-banner" data-slide-banner="{&quot;cookieKey&quot;:&quot;23102026&quot;,&quot;picture&quot;:&quot;\/upload\/banners\/2026\/10\/halva-2310-0111.png&quot;,&quot;link&quot;:&quot;\/news\/khalva-12-mesyatsev-na-pokupki-ot-100r-c-23-10-po-01-11\/&quot;,&quot;notificatorText&quot;:&quot;Халва 12 месяцев от 100 c 23.10 по 01.11&quot;,&quot;notificatorLink&quot;:&quot;\/news\/khalva-12-mesyatsev-na-pokupki-ot-100r-c-23-10-po-01-11\/&quot;}"></div>
+
+<main class="container page-main page-main">
+
+
+                <section class="banners-block banners-block__top">
+        <div class="banners-block_menu  section-menu  section-menu__has-icons section-menu__has-borders section-menu__top left-col js-main-menu">
+            
+    <a href="/interer-i-otdelka-c" class="section-menu_item  js-main-menu-item  " data-submenu="18124">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-5"></use>
+            </svg>
+                <span>Интерьер и отделка</span>
+    </a>
+
+    
+    <a href="/blagoustroystvo-c" class="section-menu_item  js-main-menu-item  " data-submenu="18363">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-4"></use>
+            </svg>
+                <span>Благоустройство</span>
+    </a>
+
+    
+    <a href="/stroymaterialy-c" class="section-menu_item  js-main-menu-item  " data-submenu="17958">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-3"></use>
+            </svg>
+                <span>Стройматериалы</span>
+    </a>
+
+    
+    <a href="/instrument-c" class="section-menu_item  js-main-menu-item  " data-submenu="18529">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-1"></use>
+            </svg>
+                <span>Инструмент</span>
+    </a>
+
+    
+    <a href="/mebel-c" class="section-menu_item  js-main-menu-item  " data-submenu="24823">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-14"></use>
+            </svg>
+                <span>Мебель</span>
+    </a>
+
+    
+    <a href="/bytovaya-tekhnika-c" class="section-menu_item  js-main-menu-item  " data-submenu="17910">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-8"></use>
+            </svg>
+                <span>Бытовая техника</span>
+    </a>
+
+    
+    <a href="/tovary-dlya-doma-c" class="section-menu_item  js-main-menu-item  " data-submenu="29081">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__home"></use>
+            </svg>
+                <span>Товары для дома</span>
+    </a>
+
+    
+    <a href="/santekhnika-c" class="section-menu_item  js-main-menu-item  " data-submenu="18039">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-6"></use>
+            </svg>
+                <span>Сантехника</span>
+    </a>
+
+    
+    <a href="/elektrika-c" class="section-menu_item  js-main-menu-item  " data-submenu="18716">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-7"></use>
+            </svg>
+                <span>Электрика</span>
+    </a>
+
+    
+    <a href="/inzhenernye-sistemy-c" class="section-menu_item  js-main-menu-item  " data-submenu="18309">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-water"></use>
+            </svg>
+                <span>Инженерные системы</span>
+    </a>
+
+    
+    <a href="/otdykh-i-razvlecheniya-c" class="section-menu_item  js-main-menu-item  " data-submenu="17875">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-13"></use>
+            </svg>
+                <span>Спорт и отдых</span>
+    </a>
+
+    
+    <a href="/zimnie-i-novogodnie-tovary-c" class="section-menu_item  js-main-menu-item  " data-submenu="17902">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#christmas-tree-icon"></use>
+            </svg>
+                <span>Новый год</span>
+    </a>
+
+    
+    <a href="/krepezh-c" class="section-menu_item  js-main-menu-item  " data-submenu="18094">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-krepezh"></use>
+            </svg>
+                <span>Крепеж</span>
+    </a>
+
+    
+    <a href="/avtotovary-c" class="section-menu_item  js-main-menu-item  " data-submenu="18603">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-12"></use>
+            </svg>
+                <span>Автотовары</span>
+    </a>
+
+    
+    <a href="/elektronika-c" class="section-menu_item  js-main-menu-item  " data-submenu="28205">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__watch"></use>
+            </svg>
+                <span>Электроника</span>
+    </a>
+
+    
+    <a href="/tovary-dlya-detey-c" class="section-menu_item  js-main-menu-item  " data-submenu="28347">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__bear"></use>
+            </svg>
+                <span>Товары для детей</span>
+    </a>
+
+    
+    <a href="/krasota-i-zdorove-c" class="section-menu_item  js-main-menu-item  " data-submenu="29035">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__beauty"></use>
+            </svg>
+                <span>Красота и здоровье</span>
+    </a>
+
+    
+    <a href="/prokat-c" class="section-menu_item  js-main-menu-item section-menu_item__last " data-submenu="23732">
+
+                    <svg class="section-menu_item-icon">
+                <use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-prokat"></use>
+            </svg>
+                <span>Прокат</span>
+    </a>
+
+            </div>
+        <script data-skip-moving="true">
+        (function () {
+            var menu = document.querySelector('.banners-block_menu.js-main-menu');
+            if (!menu) return;
+            var html = null;
+            var loading = null;
+            var hoveredSubmenu = null;
+            menu.addEventListener('pointerover', function (event) {
+                var item = event.target && event.target.closest ? event.target.closest('.js-main-menu-item') : null;
+                if (item) hoveredSubmenu = item.getAttribute('data-submenu');
+            });
+            menu.addEventListener('pointerleave', function () {
+                hoveredSubmenu = null;
+            });
+            function fetchMenu() {
+                if (html) return Promise.resolve(html);
+                if (loading) return loading;
+                loading = fetch('/local/include/catalog_menu.php', { credentials: 'same-origin' })
+                    .then(function (response) { return response.text(); })
+                    .then(function (text) {
+                        html = text;
+                        return text;
+                    })
+                    .catch(function (error) {
+                        loading = null;
+                        throw error;
+                    });
+                return loading;
+            }
+            function mount() {
+                if (menu.querySelector('.js-main-submenu')) return;
+                fetchMenu().then(function (text) {
+                    if (menu.querySelector('.js-main-submenu')) return;
+                    if (typeof initMainMenu !== 'function') {
+                        setTimeout(mount, 40);
+                        return;
+                    }
+                    menu.innerHTML = text;
+                    initMainMenu();
+                    if (typeof removeEmpty === 'function') removeEmpty(menu);
+                    if (hoveredSubmenu && typeof mainMenuActivate === 'function') {
+                        var activeItem = menu.querySelector('.js-main-menu-item[data-submenu="' + hoveredSubmenu + '"]');
+                        if (activeItem) mainMenuActivate(activeItem);
+                    }
+                }).catch(function () {});
+            }
+            menu.addEventListener('pointerenter', mount, { once: true });
+            function prefetch() {
+                if (window.innerWidth < 768) return;
+                if ('requestIdleCallback' in window) requestIdleCallback(function () { fetchMenu().catch(function () {}); }, { timeout: 5000 });
+                else setTimeout(function () { fetchMenu().catch(function () {}); }, 2500);
+            }
+            if (document.readyState === 'complete') prefetch();
+            else window.addEventListener('load', prefetch);
+        })();
+        </script>
+
+        <div class="banners-block_banners section-banners">
+            <div class="banners-row banners-row__top js-slider-append-group">
+            
+        <div
+            class="slider slider__banner"
+            data-main-banner-slider="{&quot;items&quot;:[{&quot;link&quot;:&quot;/news/khalva-12-mesyatsev-na-pokupki-ot-100r-c-23-10-po-01-11/&quot;,&quot;alt&quot;:&quot;халва 12 месяцев 23.10-01.11.2026&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/a9/a8/2468264/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/a9/a8/2468264/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;https://www.oma.by/listovka/&quot;,&quot;alt&quot;:&quot;листовка актября 2026&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8f/e6/2461670/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8f/e6/2461670/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/sales/svetilniki-potolochnye-15-19-10-01-11-2026/&quot;,&quot;alt&quot;:&quot;светильники -15% 19.10-01.11.2026 &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/a0/2f/2465839/1365x575_cut_q90.png&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/a0/2f/2465839/729x308_cut_q90.png&quot;},{&quot;link&quot;:&quot;/sales/elektroinstrument-do-30-dlya-onlayn-pokupok/&quot;,&quot;alt&quot;:&quot;Электроинструмент до -30% для онлайн покупок&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8f/e5/2461669/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8f/e5/2461669/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/sales/bytovaya-tekhnika-do-20/&quot;,&quot;alt&quot;:&quot;Бытовая техника до -20% для онлайн покупок&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8f/e8/2461672/1365x575_cut_q90.png&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8f/e8/2461672/729x308_cut_q90.png&quot;},{&quot;link&quot;:&quot;https://www.oma.by/sushilka-dlya-belya-napolnaya-homeko-art-bj-c1411-1-362955-p?q=01_0362955&amp;query_id=f0ec8cd4-4e3d-4d5b-837f-02e55ae8a918&quot;,&quot;alt&quot;:&quot;сушилка &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8e/82/2461314/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8e/82/2461314/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;https://www.oma.by/pena-montazhnaya-professionalnaya-wunder-foam-vsesezonnaya-750ml-885g-2-225021-p?srsltid=AU7gw4Xyt7iNupHzdQBW5_sWxve3rahoTxMsM99TXD99qKoqDupF65pV&quot;,&quot;alt&quot;:&quot;пена&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8e/83/2461315/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8e/83/2461315/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/news/vernem-bonusami-50-01-10-01-11-2026/&quot;,&quot;alt&quot;:&quot;кэшбкек ламинат октябрь 2026&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/8a/92/2460306/1365x575_cut_q90.png&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/8a/92/2460306/729x308_cut_q90.png&quot;},{&quot;link&quot;:&quot;/news/programma-kapital/&quot;,&quot;alt&quot;:&quot;Капитал&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/67/62/2451298/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/67/62/2451298/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/buyers/delivery/&quot;,&quot;alt&quot;:&quot;Доставка от 400 рублей&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/38/37/2439223/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/38/37/2439223/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/news/sovershayte-pokupki-i-poluchayte-do-10-bonusami/&quot;,&quot;alt&quot;:&quot;кэшбек альфа&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/37/e4/2439140/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/37/e4/2439140/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/news/khotite-sdelat-pokupki-eshche-vygodnee/&quot;,&quot;alt&quot;:&quot;белвеб&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/3f/f0/2441200/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/3f/f0/2441200/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/news/vtb-i-oma-vmeste-dlya-vashikh-vygodnykh-pokupok-/&quot;,&quot;alt&quot;:&quot;ВТБ и OMA &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/4e/cb/2445003/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/4e/cb/2445003/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/news/manibek-3-v-oma-po-kartam-bsb-banka/&quot;,&quot;alt&quot;:&quot;БСБ и OMA &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/64/52/2450514/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/64/52/2450514/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;https://www.oma.by/sales/rodnae-svaye/&quot;,&quot;alt&quot;:&quot;роднае свае&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/86/f6/2393846/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/86/f6/2393846/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/buyers/discount/balans/#card-info&quot;,&quot;alt&quot;:&quot;Карта лояльности &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/35/a2/2438562/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/35/a2/2438562/729x308_cut_q90.jpg&quot;},{&quot;link&quot;:&quot;/sales/novinki-assortimenta/&quot;,&quot;alt&quot;:&quot;Новинки ассортимента&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/35/a3/2438563/1365x575_cut_q90.png&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/35/a3/2438563/729x308_cut_q90.png&quot;},{&quot;link&quot;:&quot;/sales/poslednyaya-edinichka/&quot;,&quot;alt&quot;:&quot;Последняя единичка&quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/35/a0/2438560/1365x575_cut_q90.png&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/35/a0/2438560/729x308_cut_q90.png&quot;},{&quot;link&quot;:&quot;https://www.oma.by/news/alpina-elastichnaya-universalnaya-/&quot;,&quot;alt&quot;:&quot;Alpina Эластичная Универсальная &quot;,&quot;image_desktop&quot;:&quot;/upload/images/resize/banners/a2/26/2466342/1365x575_cut_q90.jpg&quot;,&quot;image_mobile&quot;:&quot;/upload/images/resize/banners/a2/26/2466342/729x308_cut_q90.jpg&quot;}],&quot;side&quot;:[]}"
+        >
+                            <a aria-label="халва 12 месяцев 23.10-01.11.2026" href="/news/khalva-12-mesyatsev-na-pokupki-ot-100r-c-23-10-po-01-11/" class="banner-item banner-item__overflow banner-item__wide-xs">
+                    <picture>
+                        <source media="(max-width: 767px)" srcset="/upload/images/resize/banners/a9/a8/2468264/729x308_cut_q90.jpg" />
+                        <source media="(min-width: 768px)" srcset="/upload/images/resize/banners/a9/a8/2468264/1365x575_cut_q90.jpg" />
+                        <img src="/upload/images/resize/banners/a9/a8/2468264/1365x575_cut_q90.jpg" alt="халва 12 месяцев 23.10-01.11.2026" fetchpriority="high" />
+                    </picture>
+                </a>
+                    </div>
+
+
+    <div id="adfox_177305123330122147" class="no-border-link"></div>
+            
+<div class="menu-scroll-wrap hide-not-mobile">
+            <a href="/interer-i-otdelka-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-5"></use></svg>
+                        <span>Интерьер и отделка</span>
+        </a>
+            <a href="/blagoustroystvo-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-4"></use></svg>
+                        <span>Благоустройство</span>
+        </a>
+            <a href="/stroymaterialy-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-3"></use></svg>
+                        <span>Стройматериалы</span>
+        </a>
+            <a href="/instrument-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-1"></use></svg>
+                        <span>Инструмент</span>
+        </a>
+            <a href="/mebel-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-14"></use></svg>
+                        <span>Мебель</span>
+        </a>
+            <a href="/bytovaya-tekhnika-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-8"></use></svg>
+                        <span>Бытовая техника</span>
+        </a>
+            <a href="/tovary-dlya-doma-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__home"></use></svg>
+                        <span>Товары для дома</span>
+        </a>
+            <a href="/santekhnika-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-6"></use></svg>
+                        <span>Сантехника</span>
+        </a>
+            <a href="/elektrika-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-7"></use></svg>
+                        <span>Электрика</span>
+        </a>
+            <a href="/inzhenernye-sistemy-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-water"></use></svg>
+                        <span>Инженерные системы</span>
+        </a>
+            <a href="/otdykh-i-razvlecheniya-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-13"></use></svg>
+                        <span>Спорт и отдых</span>
+        </a>
+            <a href="/zimnie-i-novogodnie-tovary-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#christmas-tree-icon"></use></svg>
+                        <span>Новый год</span>
+        </a>
+            <a href="/krepezh-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-krepezh"></use></svg>
+                        <span>Крепеж</span>
+        </a>
+            <a href="/avtotovary-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-12"></use></svg>
+                        <span>Автотовары</span>
+        </a>
+            <a href="/elektronika-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__watch"></use></svg>
+                        <span>Электроника</span>
+        </a>
+            <a href="/tovary-dlya-detey-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__bear"></use></svg>
+                        <span>Товары для детей</span>
+        </a>
+            <a href="/krasota-i-zdorove-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#icon__beauty"></use></svg>
+                        <span>Красота и здоровье</span>
+        </a>
+            <a href="/prokat-c" class="menu-scroll-wrap_item">
+                           <svg><use xlink:href="/local/assets/dist/icons/site.svg?61cddf248ba75e6dd6a7a00f164ab605#catalog-icon-prokat"></use></svg>
+                        <span>Прокат</span>
+        </a>
+    </div>
+
+            <div class="banners-scroll-wrap banners-advantages">
+                <a href="/news/spetsialnoe-predlozhenie-dlya-delovykh-partnerov/" class="banner-item banner-item-grid">
+<span class="banner-item-grid_title">Предложение для деловых партнеров </span>
+<span class="banner-item-grid_txt">Размещение рекламы в торговой сети ОМА</span>
+<img data-src="/upload/medialibrary/fe7/fe7d21cca771f1074b5bafdc32922f8b.jpg" alt="" src="/local/images/shadow.png" class="lazyload">
+</a><a href="/buyers/certificates/" class="banner-item banner-item-grid">
+<span class="banner-item-grid_title">Подарочные карты ОМА</span>
+<span class="banner-item-grid_txt">Идеальный подарок на любой праздник</span>
+<img data-src="/upload/medialibrary/726/dc7t4x6hwvkkm1f2ombr1jp47456r1wb.PNG" alt="" src="/local/images/shadow.png" class="lazyload">
+</a><a href="https://kakdela.rabota.by/poll/CspE2wa7KFiR8N03VrGa3bvi" class="banner-item banner-item-grid">
+<span class="banner-item-grid_title">Опрос ремонт в кредит</span>
+<span class="banner-item-grid_txt">Нам важно знать Ваше мнение</span>
+<img data-src="/upload/medialibrary/d47/zfk2ctlbid5n94kxlpev2m91wc5aj87z.jpg" alt="" src="/local/images/shadow.png" class="lazyload">
+</a>            </div>
+            </div>
+        </div>
+
+    </section>
+
+    
+    
+    
+
+    <div class="main-page-deferred-block" data-main-deferred-block="sale-sliders">
+        <div class="v-product-slider v-product-slider--saleOnMain" data-product-slider data-product-slider-variant="saleOnMain" data-product-slider-lazy="1" data-product-slider-api="{&quot;query&quot;:{&quot;service&quot;:&quot;saleOnMain&quot;,&quot;count&quot;:10,&quot;min_count&quot;:1,&quot;section_id&quot;:0,&quot;with_sections&quot;:0,&quot;shuffle&quot;:0,&quot;sale_id&quot;:1535181,&quot;location_id&quot;:32394},&quot;ui&quot;:{&quot;variant&quot;:&quot;saleOnMain&quot;,&quot;title&quot;:&quot;&quot;,&quot;buttonText&quot;:&quot;&quot;,&quot;buttonLink&quot;:&quot;&quot;,&quot;blockId&quot;:&quot;&quot;,&quot;blockClass&quot;:&quot;&quot;,&quot;slidesToShow&quot;:5,&quot;withSections&quot;:false,&quot;popupTitle&quot;:&quot;&quot;,&quot;allowEmpty&quot;:false}}" data-product-slider-defer-shell="1" data-product-slider-deferred="1" data-product-slider-lazy-margin="0"></div><div class="v-product-slider v-product-slider--saleOnMain" data-product-slider data-product-slider-variant="saleOnMain" data-product-slider-lazy="1" data-product-slider-api="{&quot;query&quot;:{&quot;service&quot;:&quot;saleOnMain&quot;,&quot;count&quot;:10,&quot;min_count&quot;:1,&quot;section_id&quot;:0,&quot;with_sections&quot;:0,&quot;shuffle&quot;:0,&quot;sale_id&quot;:1487579,&quot;location_id&quot;:32394},&quot;ui&quot;:{&quot;variant&quot;:&quot;saleOnMain&quot;,&quot;title&quot;:&quot;&quot;,&quot;buttonText&quot;:&quot;&quot;,&quot;buttonLink&quot;:&quot;&quot;,&quot;blockId&quot;:&quot;&quot;,&quot;blockClass&quot;:&quot;&quot;,&quot;slidesToShow&quot;:5,&quot;withSections&quot;:false,&quot;popupTitle&quot;:&quot;&quot;,&quot;allowEmpty&quot;:false}}" data-product-slider-defer-shell="1" data-product-slider-deferred="1" data-product-slider-lazy-margin="0"></div>    </div>
+
+<div class="v-product-slider v-product-slider--default" data-product-slider data-product-slider-variant="default" data-product-slider-lazy="1" data-product-slider-api="{&quot;query&quot;:{&quot;service&quot;:&quot;popular&quot;,&quot;count&quot;:25,&quot;min_count&quot;:5,&quot;section_id&quot;:0,&quot;with_sections&quot;:1,&quot;shuffle&quot;:1,&quot;location_id&quot;:32394},&quot;ui&quot;:{&quot;variant&quot;:&quot;default&quot;,&quot;title&quot;:&quot;Популярные товары&quot;,&quot;buttonText&quot;:&quot;Все популярные&quot;,&quot;buttonLink&quot;:&quot;\/sales\/top-prodazh\/&quot;,&quot;blockId&quot;:&quot;&quot;,&quot;blockClass&quot;:&quot;&quot;,&quot;slidesToShow&quot;:5,&quot;withSections&quot;:true,&quot;popupTitle&quot;:&quot;Популярные товары&quot;,&quot;allowEmpty&quot;:false}}" data-product-slider-defer-shell="1"></div>
+<div
+    class="main-page-deferred-block"
+    data-main-deferred-block="below-fold"
+    data-main-deferred-url="/local/ajax/main_page_below_fold.php"
+></div>
+
+
+
+
+</main>
+
+<div class="white-stripe">
+
+            <div class="container clearfix">
+
+            <section class="js-big-promo big-promo-block row row-20"><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/upload/medialibrary/71e/71ebb41245ef808281cb105997008ac7.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">Доставка по Беларуси <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">Доставка заказов по ВСЕЙ Беларуси - более 180 городов доставки по единой цене</div>
+</div><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/local/images/markup-images/banners/promo-banner-2.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">Гарантия качества <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">Сертифицированная продукция от официальных поставщиков.</div>
+</div><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/upload/medialibrary/b3e/b3e22099d2480f9b1da9939eb58d1cbb.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">Полезные услуги <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">Компьютерная колеровка красок, прокат прицепов и инструментов, 3D-дизайн кухонь и ванных комнат.</div>
+</div><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/upload/medialibrary/e54/e549e70a25d9aa065e6842862c13dc03.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">34 года на рынке <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">За это время мы заслужили доверие клиентов и наладили прямые поставки порядка 70 000 товаров из 25 стран</div>
+</div><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/local/images/markup-images/banners/promo-banner-5.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">Удобная оплата <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">Наличными, банковской картой. В розничном магазине или через курьера. Выбор за вами!</div>
+</div><div class="big-promo-item col col-lg-2-of-12 col-xs-12-of-12">
+                <div class="big-promo-item_img-box">
+                    <img class="lazyload" data-src="/upload/medialibrary/85d/85df60f467c28aedd86354f4e3d56bdd.png" src="/local/images/preloader_small.gif" alt="">
+                </div>
+                <div class="big-promo-item_title js-accordion-ungrouped-bar" data-accordion-init="xs">Скидки и акции <span class="icon icon__chevron-down"></span></div>
+                <div class="big-promo-item_txt js-accordion-ungrouped-body">Акционные товары каждую неделю. Оплата частями и кредит. Программа лояльности.</div>
+</div></section>
+        </div>
+    </div>
+
+
+<footer class="page-footer">
+    <div class="container">
+        <div class="row row-20">
+            <div class="col footer-left-col">
+
+                
+                
+                <section class="info-section">
+                    <div class="block-services-masters">
+                        <a href="/buyers/services/masters">
+                            <img src="/buyers/services/masters/image/to_masters.png" alt="Услуги мастеров ОМА">
+
+                            <div class="overlay-text">
+                                Услуги мастеров
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="info-section hidden visible-sm">
+                    <div class="apps-block">
+    <a href="https://apps.apple.com/ru/app/ома-все-для-дома-и-ремонта/id1665898779">
+        <svg width="120" height="40" role="img" aria-label="app store"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#app-store"></use></svg>    </a>
+    <a href="https://play.google.com/store/apps/details?id=ru.oma.android&hl=ru">
+        <svg width="135" height="40" role="img" aria-label="google play"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#google-play"></use></svg>    </a>
+</div>
+
+                </section>
+
+                <section class="info-section">
+                    <div class="social-icon_row"><a aria-label="facebook" "nofollow" href="https://www.facebook.com/www.oma.by" rel="nofollow" class="social-icon_cell social-icon__facebook" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-facebook"></use></svg></a><a aria-label="vkontakte" "nofollow" href="https://vk.com/oma_by" rel="nofollow" class="social-icon_cell social-icon__vkontakte" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-vkontakte"></use></svg></a><a aria-label="odnoklassniki" "nofollow" href="http://ok.ru/omaby" rel="nofollow" class="social-icon_cell social-icon__odnoklassniki" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-odnoklassniki"></use></svg></a><a aria-label="instagram" "nofollow" href="https://www.instagram.com/oma.by/" rel="nofollow" class="social-icon_cell social-icon__instagram" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-instagram"></use></svg></a><a aria-label="youtube" "nofollow" href="https://www.youtube.com/@oma_by" rel="nofollow" class="social-icon_cell social-icon__youtube" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-youtube"></use></svg></a><a aria-label="telegram" "nofollow" href="https://t.me/omabelarus" rel="nofollow" class="social-icon_cell social-icon__telegram" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-telegram"></use></svg></a><a aria-label="viber" "nofollow" href="https://invite.viber.com/?g2=AQApmRWW0OGqI088KBYgW2i6aH8i6wJjCWKBsKYDYxYExCZ6nhQKjvux7tgSqAmr" rel="nofollow" class="social-icon_cell social-icon__viber" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-viber"></use></svg></a><a aria-label="tiktok" "nofollow" href="https://www.tiktok.com/@oma_by?_t=8qe6OYubUMX&_r=1" rel="nofollow" class="social-icon_cell social-icon__tiktok" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-tiktok"></use></svg></a><a aria-label="pinterest" "nofollow" href="https://pin.it/fqSOCoWXA" rel="nofollow" class="social-icon_cell social-icon__pinterest" target="_blank"><svg width="30" height="30" aria-hidden="true"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#social-pinterest"></use></svg></a></div>                </section>
+
+
+                <section class="footer-share-section">
+                    <div class="row row-0">
+                        
+                    </div>
+
+                    
+                </section>
+
+                <hr class="hidden visible-sm">
+
+            </div>
+
+            <div class="col footer-middle-col">
+                <div class="row row-20">
+
+                        <div class="col col-lg-6-of-12 col-xs-12-of-12 footer-menu">
+                                                <span class="js-accordion-ungrouped-bar vert-menu-list-head" data-accordion-init="xs">Покупателям<span class="icon icon__chevron-down"></span></span>
+                <ul class="vert-menu-list js-accordion-ungrouped-body">
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="#" data-popup-url="/reviews/form.php" class="vert-menu-list_link js-open-popup">Форма обратной связи</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/delivery/" class="vert-menu-list_link">Доставка</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/samovyvoz/" class="vert-menu-list_link">Самовывоз</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/payment/" class="vert-menu-list_link">Способы оплаты</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/payment/#credit" class="vert-menu-list_link">Оплата частями</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/helpful/" class="vert-menu-list_link">Полезные статьи</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/sales/rodnae-svaye/" class="vert-menu-list_link">Роднае, сваё</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/services/" class="vert-menu-list_link">Услуги</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/services/masters/" class="vert-menu-list_link">Мастера</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/warranty/" class="vert-menu-list_link">Возврат и гарантия</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/app-submission/" class="vert-menu-list_link">Порядок подачи обращений</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/discount/balans/#card-info" class="vert-menu-list_link">Программа лояльности</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/brands/" class="vert-menu-list_link">Бренды</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/questions/" class="vert-menu-list_link">Вопросы и ответы</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/certificates/" class="vert-menu-list_link">Подарочные карты</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/products-exclude/" class="vert-menu-list_link">Список товаров-исключений</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/news/mobile-app/" class="vert-menu-list_link">Мобильное приложение</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/b2b/" class="vert-menu-list_link">Покупай как юр. лицо</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/buyers/services/protection360/" class="vert-menu-list_link">Расширенная гарантия</a>
+                                                    </li>
+                     
+                </ul>
+                        </div>
+    <div class="col col-lg-6-of-12 col-xs-12-of-12 footer-menu">
+                                                <span class="js-accordion-ungrouped-bar vert-menu-list-head" data-accordion-init="xs">Компания ОМА<span class="icon icon__chevron-down"></span></span>
+                <ul class="vert-menu-list js-accordion-ungrouped-body">
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/" class="vert-menu-list_link">О компании</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/news/" class="vert-menu-list_link">Новости</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/rabota-v-oma/" class="vert-menu-list_link">Работа в ОМА</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/reviews/" class="vert-menu-list_link">Отзывы об ОМА</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/blagotvoritelnost/" class="vert-menu-list_link">Благотворительность</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/personal_policy.pdf" class="vert-menu-list_link">Политика в отношении обработки персональных данных</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/personal-cookies-policy/" class="vert-menu-list_link">Положение о политике в отношении обработки куки</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/oferta/" class="vert-menu-list_link">Договор публичной оферты</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/regulation_video_audio.pdf" class="vert-menu-list_link">Положение о видеонаблюдении и аудиозаписи</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/regulations_loyalty_programs.pdf" class="vert-menu-list_link">Положение о программе лояльности</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/about/sooperator-franchaisi.pdf" class="vert-menu-list_link">Перечень сооператоров-франчайзи</a>
+                                                    </li>
+                     
+                </ul>
+                                                            <span class="js-accordion-ungrouped-bar vert-menu-list-head" data-accordion-init="xs">Партнерам<span class="icon icon__chevron-down"></span></span>
+                <ul class="vert-menu-list js-accordion-ungrouped-body">
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="https://b2b.oma.by/about/departments/" class="vert-menu-list_link">Как стать партнером</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/partners/contacts/" class="vert-menu-list_link">Реквизиты компании</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="https://b2b.oma.by/about/partners/tendery/" class="vert-menu-list_link">Тендеры</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/partners/franchayzing/" class="vert-menu-list_link">Франчайзинг</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="https://omapro.by" class="vert-menu-list_link">Перейти на сайт для юр. лиц</a>
+                                                    </li>
+                                                                    <li class="vert-menu-list_li">
+                                                            <a href="/partners/gruzoperevozki/" class="vert-menu-list_link">Грузоперевозчикам</a>
+                                                    </li>
+                     
+                </ul>
+                        </div>
+
+                </div>
+            </div>
+
+            <div class="col footer-right-col">
+                <hr class="hidden visible-xs">
+                <section class="info-section">
+                    <div class="award-gallery-grid js-img-popup-group-footer" data-popup-title="Награды и премии" data-img-list='[ "/local/images/awards/2012.jpg", "/local/images/awards/2013.jpg", "/local/images/awards/2014.jpg", "/local/images/awards/2016.jpg", "/local/images/awards/2019.jpg", "/local/images/awards/2014—2.jpg", "/local/images/awards/2016—2.jpg", "/local/images/awards/oma-narodnaya-marka-2025.png", "/local/images/awards/2017-1.jpg","/local/images/awards/2017-2.jpg" ]'>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ 		<img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-1.png" alt="2012"><span class="award-name">2012</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ 		<img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-1.png" alt="2013"><span class="award-name">2013</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ 		<img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-1.png" alt="2014"><span class="award-name">2014</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ 		<img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-1.png" alt="2016" ><span class="award-name">2016</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ 		<img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/gold-19.png" alt="2019" ><span class="award-name">2019</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ <img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-2.png" alt="2014 2 медаль" ><span class="award-name">2014</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ <img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-2.png" alt="2016 2 медаль" ><span class="award-name">2016<br>
+		</span>
+	</div>
+	<div class="award-gallery-grid_medals js-open-img-popup-footer">
+ <img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/medal-3.png" alt="2025" ><span class="award-name">2025<br>
+		</span>
+	</div>
+	<div class="award-gallery-grid_diploms js-open-img-popup-footer">
+ <img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/diplom-1.png" alt="Диплом 1" >
+	</div>
+	<div class="award-gallery-grid_diploms js-open-img-popup-footer">
+ <img src="/local/images/shadow.png" class="lazyload" data-src="/local/images/awards/diplom-2.png" alt="Диплом 2" >
+	</div>
+</div>
+ <br>                </section>
+                <hr class="hidden visible-xs visible-sm">
+
+                <a href="/buyers/payment/" class="pay-icons">
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="visa"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-visa"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="mastecard"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-mastercard"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="googlePay"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-google-pay"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="applePay"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-apple-pay"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="bePaid"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-bepaid"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="halva"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-halva"></use></svg>                            </span>
+        </span>
+            <span class="pay-icon">
+            <span>
+                                    <svg width="64" height="20" role="img" aria-label="belcard"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#pay-belcart"></use></svg>                            </span>
+        </span>
+    </a>
+                <section class="info-section hidden-sm hidden-xs">
+                    <div class="apps-block">
+    <a href="https://apps.apple.com/ru/app/ома-все-для-дома-и-ремонта/id1665898779">
+        <svg width="120" height="40" role="img" aria-label="app store"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#app-store"></use></svg>    </a>
+    <a href="https://play.google.com/store/apps/details?id=ru.oma.android&hl=ru">
+        <svg width="135" height="40" role="img" aria-label="google play"><use xlink:href="/local/assets/dist/icons/footer.svg?61cddf248ba75e6dd6a7a00f164ab605#google-play"></use></svg>    </a>
+</div>
+
+                </section>
+
+                <br>
+                <div class="cookies_settings"></div>
+                <br>
+                <button type="button" class="btn btn__bigger btn__wider btn__blue btn__block-xs js-open-popup" data-popup-url="/reviews/productreturn.php">Оформить заявку на возврат</button>
+
+                <div class="clear"></div>
+                <hr class="hidden visible-xs visible-sm">
+            </div>
+            <div class="footer-bottom-text">
+                <div class="copyright">
+                    <p>© 1992–2026 ООО «ОМА»</p>
+
+                    <p>
+	 ООО «ОМА» УНП 100005713, юр. адрес: 223021, Минский р-н, Щомыслицкий с/с, 107-11, р. д. Дворицкая Слобода. Свидетельство № 695, от 20.06.2000 г. Выдано: Минским городским исполнительным комитетом Зарегистрирован в Торговом реестре Республики Беларусь 29.08.2016 № 349556. <br>
+	 Email: <a href="mailto:ooo@oma.by">ooo@oma.by</a>. Телефон: +375 (17) 330-10-00
+</p>
+<p>
+	 Номера телефонов местного исполнительного и распорядительного органа по месту государственной регистрации ООО «ОМА», уполномоченного рассматривать обращения покупателей в соответствии с законодательством об обращениях граждан и юридических лиц: 375 (17) 270-29-14, 375 (17) 270-33-75 (Минский районный исполнительный комитет, отдел торговли и услуг)
+</p>
+<p>
+	 Должностное лицо ООО «ОМА», уполномоченное рассматривать обращения покупателей о нарушении их прав, предусмотренных законодательством о защите прав потребителей — Email: <a href="mailto:brak@oma.by">brak@oma.by</a>, Телефон: +375 (44) 777-82-03&nbsp;(отдел по претензионной работе). Время работы линии: Пн-Пт с 8:30 до 17.00
+</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</footer>
+
+<div class="fixed-buttons js-mark-that-shown-receiver">
+
+    
+        <div class="fixed-buttons_item css-letter-icon-parent js-toggle-open-target js-close-click-out">
+            <div class="fixed-button-message js-tabs state-orange">
+                    <button aria-label="Закрыть попап" class="popup_close-btn btn btn__close-popup css-icon-parent js-toggle-open-btn">
+                        <span class="css-big-close-icon"></span>
+                    </button>
+                            </div>
+
+                    </div>
+
+
+    <div class="fixed-buttons_item js-scroll-top-smart-show js-mark-that-shown">
+        <div class="fixed-button css-arrow-icon-parent js-anchor-top">
+            <span class="fixed-button_icon css-arrow-icon">
+                <span class="css-arrow-icon_content"></span>
+            </span>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="cookies_form" data-cookie-consent="{&quot;show&quot;:true,&quot;fields&quot;:[{&quot;code&quot;:&quot;functional&quot;,&quot;name&quot;:&quot;functional&quot;,&quot;required&quot;:true,&quot;title&quot;:&quot;Функциональные\/Технические файлы cookie&quot;,&quot;description&quot;:&quot;Эти файлы cookie необходимы для функционирования веб-сайта и не могут быть отключены в наших системах. Вы можете настроить браузер таким образом, чтобы он блокировал эти файлы cookie или уведомлял вас об их использовании, но в таком случае возможно, что некоторые разделы веб-сайта не будут работать.&quot;,&quot;sort&quot;:1,&quot;value&quot;:true},{&quot;code&quot;:&quot;advertising&quot;,&quot;name&quot;:&quot;advertising&quot;,&quot;required&quot;:false,&quot;title&quot;:&quot;Рекламные файлы cookie&quot;,&quot;description&quot;:&quot;Эти файлы cookie помогают понять ваши предпочтения исходя из активности на веб-сайте. Они предоставляют возможность персонализировать рекламные объявления основываясь на ваших интересах и предпочтениях.&quot;,&quot;sort&quot;:3,&quot;value&quot;:false},{&quot;code&quot;:&quot;analytics&quot;,&quot;name&quot;:&quot;analytics&quot;,&quot;required&quot;:false,&quot;title&quot;:&quot;Аналитические файлы cookie&quot;,&quot;description&quot;:&quot;Эти файлы cookie настраиваются через наш веб-сайт нашими партнёрами. Они могут использоваться для сбора данных о ваших интересах, посещаемых страницах и источниках трафика, чтобы оценивать и улучшать работу нашего веб-сайта. Также файлы cookie нужны для функционирования онлайн-чата и формы «Замена и возврат товара».&quot;,&quot;sort&quot;:2,&quot;value&quot;:false}]}"></div><script data-skip-moving="true" src="/local/assets/dist/js/scripts_base.min.js?38b0043ccf588449bc3b1085f4013724"></script>
+
+<script type="text/javascript" data-skip-moving="true">(function(w, d, n) {var cl = "bx-core";var ht = d.documentElement;var htc = ht ? ht.className : undefined;if (htc === undefined || htc.indexOf(cl) !== -1){return;}var ua = n.userAgent;if (/(iPad;)|(iPhone;)/i.test(ua)){cl += " bx-ios";}else if (/Windows/i.test(ua)){cl += ' bx-win';}else if (/Macintosh/i.test(ua)){cl += " bx-mac";}else if (/Linux/i.test(ua) && !/Android/i.test(ua)){cl += " bx-linux";}else if (/Android/i.test(ua)){cl += " bx-android";}cl += (/(ipad|iphone|android|mobile|touch)/i.test(ua) ? " bx-touch" : " bx-no-touch");cl += w.devicePixelRatio && w.devicePixelRatio >= 2? " bx-retina": " bx-no-retina";var ieVersion = -1;if (/AppleWebKit/.test(ua)){cl += " bx-chrome";}else if (/Opera/.test(ua)){cl += " bx-opera";}else if (/Firefox/.test(ua)){cl += " bx-firefox";}ht.className = htc ? htc + " " + cl : cl;})(window, document, navigator);</script>
+
+
+<link href="/bitrix/js/ui/design-tokens/dist/ui.design-tokens.min.css?170786968122911" type="text/css"  rel="stylesheet" />
+<link href="/bitrix/panel/main/popup.min.css?170786886720774" type="text/css"  data-template-style="true"  rel="stylesheet" />
+
+
+
+
+<div data-cart-added-popup> </div>
+<div data-auth-form-popup></div>
+
+
+<div class="overlay-search js-overlay-search"></div>
+<div
+        data-quick-search
+        data-index="catalog"
+        data-search-hints="[&quot;\u0414\u0443\u0445\u043e\u0432\u043e\u0439 \u0448\u043a\u0430\u0444&quot;,&quot;\u041c\u0438\u043d\u0435\u0440\u0430\u043b\u044c\u043d\u0430\u044f \u0432\u0430\u0442\u0430&quot;,&quot;OSB&quot;,&quot;\u041f\u044b\u043b\u0435\u0441\u043e\u0441&quot;,&quot;\u041f\u043e\u0441\u0443\u0434\u043e\u043c\u043e\u0435\u0447\u043d\u0430\u044f \u043c\u0430\u0448\u0438\u043d\u0430&quot;,&quot;\u0425\u043e\u043b\u043e\u0434\u0438\u043b\u044c\u043d\u0438\u043a&quot;,&quot;\u042d\u043a\u0441\u0442\u0440\u0443\u0434\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u043f\u0435\u043d\u043e\u043f\u043e\u043b\u0438\u0441\u0442\u0438\u0440\u043e\u043b&quot;,&quot;\u041f\u0430\u043d\u0435\u043b\u0438 \u041f\u0412\u0425&quot;,&quot;\u0413\u0438\u043f\u0441\u043e\u043a\u0430\u0440\u0442\u043e\u043d&quot;,&quot;\u041e\u0431\u043e\u0438&quot;,&quot;\u041b\u0438\u043d\u043e\u043b\u0435\u0443\u043c&quot;,&quot;\u0412\u0430\u0440\u043e\u0447\u043d\u0430\u044f \u043f\u043e\u0432\u0435\u0440\u0445\u043d\u043e\u0441\u0442\u044c&quot;]"
+        data-location-id="32394"
+        data-city-id="17109"
+        data-query=""
+></div>
+
+<script data-skip-moving="true">window.__VUE_WIDGETS_BASE__="/local/assets/vue/dist/";window.__VUE_WIDGETS_VERSION__="87c5062f3d49";window.__VUE_WIDGETS_USER_AUTHORIZED__=false;</script>
+<script data-skip-moving="true" defer src="/local/assets/vue/dist/runtime.js?87c5062f3d49"></script>
+
+<script data-skip-moving="true" >
+    $(document).off('click.mobileFiltnperOpen', '.js-mobile-filter-open').on("click", ".js-mobile-filter-open", function () {
+        document.dispatchEvent(new CustomEvent('mobile-filter-open'));
+    });
+</script>
+
+<script>if(!window.BX)window.BX={};if(!window.BX.message)window.BX.message=function(mess){if(typeof mess==='object'){for(let i in mess) {BX.message[i]=mess[i];} return true;}};</script>
+<script>(window.BX||top.BX).message({'JS_CORE_LOADING':'Загрузка...','JS_CORE_NO_DATA':'- Нет данных -','JS_CORE_WINDOW_CLOSE':'Закрыть','JS_CORE_WINDOW_EXPAND':'Развернуть','JS_CORE_WINDOW_NARROW':'Свернуть в окно','JS_CORE_WINDOW_SAVE':'Сохранить','JS_CORE_WINDOW_CANCEL':'Отменить','JS_CORE_WINDOW_CONTINUE':'Продолжить','JS_CORE_H':'ч','JS_CORE_M':'м','JS_CORE_S':'с','JSADM_AI_HIDE_EXTRA':'Скрыть лишние','JSADM_AI_ALL_NOTIF':'Показать все','JSADM_AUTH_REQ':'Требуется авторизация!','JS_CORE_WINDOW_AUTH':'Войти','JS_CORE_IMAGE_FULL':'Полный размер'});</script><script src="/bitrix/js/main/core/core.min.js?1767828279223088"></script><script>BX.Runtime.registerExtension({'name':'main.core','namespace':'BX','loaded':true});</script>
+<script>BX.setJSList(['/bitrix/js/main/core/core_ajax.js','/bitrix/js/main/core/core_promise.js','/bitrix/js/main/polyfill/promise/js/promise.js','/bitrix/js/main/loadext/loadext.js','/bitrix/js/main/loadext/extension.js','/bitrix/js/main/polyfill/promise/js/promise.js','/bitrix/js/main/polyfill/find/js/find.js','/bitrix/js/main/polyfill/includes/js/includes.js','/bitrix/js/main/polyfill/matches/js/matches.js','/bitrix/js/ui/polyfill/closest/js/closest.js','/bitrix/js/main/polyfill/fill/main.polyfill.fill.js','/bitrix/js/main/polyfill/find/js/find.js','/bitrix/js/main/polyfill/matches/js/matches.js','/bitrix/js/main/polyfill/core/dist/polyfill.bundle.js','/bitrix/js/main/core/core.js','/bitrix/js/main/polyfill/intersectionobserver/js/intersectionobserver.js','/bitrix/js/main/lazyload/dist/lazyload.bundle.js','/bitrix/js/main/polyfill/core/dist/polyfill.bundle.js','/bitrix/js/main/parambag/dist/parambag.bundle.js']);
+</script>
+<script>BX.Runtime.registerExtension({'name':'ui.design-tokens','namespace':'window','loaded':true});</script>
+<script>BX.Runtime.registerExtension({'name':'main.pageobject','namespace':'window','loaded':true});</script>
+<script>(window.BX||top.BX).message({'JS_CORE_LOADING':'Загрузка...','JS_CORE_NO_DATA':'- Нет данных -','JS_CORE_WINDOW_CLOSE':'Закрыть','JS_CORE_WINDOW_EXPAND':'Развернуть','JS_CORE_WINDOW_NARROW':'Свернуть в окно','JS_CORE_WINDOW_SAVE':'Сохранить','JS_CORE_WINDOW_CANCEL':'Отменить','JS_CORE_WINDOW_CONTINUE':'Продолжить','JS_CORE_H':'ч','JS_CORE_M':'м','JS_CORE_S':'с','JSADM_AI_HIDE_EXTRA':'Скрыть лишние','JSADM_AI_ALL_NOTIF':'Показать все','JSADM_AUTH_REQ':'Требуется авторизация!','JS_CORE_WINDOW_AUTH':'Войти','JS_CORE_IMAGE_FULL':'Полный размер'});</script>
+<script>BX.Runtime.registerExtension({'name':'window','namespace':'window','loaded':true});</script>
+<script>(window.BX||top.BX).message({'SS_NETWORK_DISPLAY':'N','SS_NETWORK_URL':'https://www.bitrix24.net/oauth/authorize/?user_lang=ru&client_id=ext.583d1506e59be4.85485515&redirect_uri=https%3A%2F%2Fwww.oma.by%2F%3Fauth_service_id%3DBitrix24Net&scope=auth,admin&response_type=code&mode=popup&state=site_id%3Ds1%26backurl%3D%252F%253Fcheck_key%253Dc059e6738b2549d0590d7915d17c6302%26mode%3Dpopup','SS_NETWORK_POPUP_TITLE':'Битрикс24 - Единая авторизация','SS_NETWORK_POPUP_CONNECT':'Подключить','SS_NETWORK_POPUP_TEXT':'<b>Подключите свой Битрикс24<\/b>, используйте один логин и пароль для авторизации на любом вашем сайте.<\/b><br /><br />Больше не нужно помнить разные пароли и логины,<br />Битрикс24 - ваш единый вход.','SS_NETWORK_POPUP_DONTSHOW':'Больше не показывать это сообщение','SS_NETWORK_POPUP_COUNT':'0'});</script>
+<script>BX.Runtime.registerExtension({'name':'socialservices_admin','namespace':'window','loaded':true});</script>
+<script>(window.BX||top.BX).message({'LANGUAGE_ID':'ru','FORMAT_DATE':'DD.MM.YYYY','FORMAT_DATETIME':'DD.MM.YYYY HH:MI:SS','COOKIE_PREFIX':'BITRIX_SM','SERVER_TZ_OFFSET':'10800','UTF_MODE':'Y','SITE_ID':'s1','SITE_DIR':'/','USER_ID':'','SERVER_TIME':'1793102220','USER_TZ_OFFSET':'0','USER_TZ_AUTO':'Y','bitrix_sessid':'653d946206967e60bdee5faae4b6e42b'});</script><script  src="/bitrix/cache/js/s1/main/kernel_main/kernel_main_v1.js?1792622632141775"></script>
+<script>BX.setJSList(['/bitrix/js/main/pageobject/pageobject.js','/bitrix/js/main/core/core_window.js','/bitrix/js/main/date/main.date.js','/bitrix/js/main/core/core_date.js','/bitrix/js/main/utils.js','/local/assets/dist/js/scripts.min.js','/local/components/newsite/loginarea/init.js']);</script>
+<script  src="/bitrix/cache/js/s1/main/template_1b92715c555113bcb076cb003e8e0a04/template_1b92715c555113bcb076cb003e8e0a04_v1.js?1792881211251979"></script>
+
+<script>
+    $( ".background_black_hover-only" ).hover(function() {
+        $( this ).fadeOut( 100 );
+        $( this ).fadeIn( 500 );
+    });
+</script>
+
+</body>
+</html>

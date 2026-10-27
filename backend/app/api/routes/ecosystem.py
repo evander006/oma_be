@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
-from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user, require_room_owner
@@ -14,7 +13,6 @@ from app.db.models import CartItem, Product, Property, Room, User
 from app.db.models.ecosystem import (
     ContractorFavorite,
     ContractorProfile,
-    ContractorSpecialty,
     HomeEquipment,
     HomeHistoryEvent,
     JourneyInstance,
@@ -265,19 +263,21 @@ def contractors(
         joinedload(ContractorProfile.specialties),
         joinedload(ContractorProfile.portfolio),
     )
-    if specialty:
-        like = f"%{specialty.strip()}%"
-        q = (
-            q.join(ContractorSpecialty)
-            .filter(
-                or_(
-                    ContractorSpecialty.code.ilike(like),
-                    ContractorSpecialty.name.ilike(like),
-                )
-            )
-            .distinct()
-        )
     rows = q.order_by(ContractorProfile.display_name).all()
+    # SQLite's LIKE/LOWER do not case-fold Cyrillic reliably. These demo
+    # profiles form a small catalog; Unicode-aware filtering on loaded
+    # specialties behaves consistently across SQLite and PostgreSQL.
+    needle = (specialty or "").strip().casefold()
+    if needle:
+        rows = [
+            contractor
+            for contractor in rows
+            if any(
+                needle in specialty.code.casefold()
+                or needle in specialty.name.casefold()
+                for specialty in contractor.specialties
+            )
+        ]
     return [serialize_contractor(db, row, user_id=user.id) for row in rows]
 
 

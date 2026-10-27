@@ -147,6 +147,25 @@ def test_contractor_work_order_proposal_completion_flow(client, seeded_products)
     assert any(row["event_type"] == "work_completed" for row in history.json())
 
 
+def test_contractor_filter_handles_cyrillic_case_and_codes(client):
+    # SQLite's LIKE/LOWER are ASCII-only by default, so filtering a Cyrillic
+    # title must use Unicode case-folding rather than SQL ILIKE.
+    lowercase = client.get("/api/v1/contractors", params={"specialty": "элект"})
+    uppercase = client.get("/api/v1/contractors", params={"specialty": "ЭЛЕКТ"})
+    code = client.get("/api/v1/contractors", params={"specialty": "ELECTR"})
+    unknown = client.get("/api/v1/contractors", params={"specialty": "неизвестно"})
+
+    assert lowercase.status_code == 200
+    assert uppercase.status_code == 200
+    assert code.status_code == 200
+    assert unknown.status_code == 200
+    ids = [row["id"] for row in lowercase.json()]
+    assert ids
+    assert [row["id"] for row in uppercase.json()] == ids
+    assert [row["id"] for row in code.json()] == ids
+    assert unknown.json() == []
+
+
 def test_work_order_requires_explicit_consent(client):
     contractor = client.get("/api/v1/contractors").json()[0]
     response = client.post(

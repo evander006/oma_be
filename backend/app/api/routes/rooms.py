@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_room_owner
 from app.core.config import get_settings
 from app.db.models import Property, Room, RoomPhoto, RoomPlacement, User
+from app.services.purchase_eligibility import eligible_order_products
 from app.db.session import get_db
 from app.schemas import (
     PropertyCreate,
@@ -224,8 +225,37 @@ def add_placement(
     user: User = Depends(get_current_user),
 ) -> dict:
     room = require_room_owner(db, room_id, user)
+    eligible = eligible_order_products(db, user)
+    if product_id not in eligible:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Only products present in the user's completed OMA order "
+                "or explicitly labelled demo order can be placed in the 3D home"
+            ),
+        )
+    existing = (
+        db.query(RoomPlacement)
+        .filter(
+            RoomPlacement.room_id == room.id,
+            RoomPlacement.product_id == product_id,
+        )
+        .first()
+    )
+    if existing:
+        return {
+            "id": existing.id,
+            "room_id": room.id,
+            "product_id": product_id,
+            "is_demo": eligible[product_id],
+        }
     placement = RoomPlacement(room_id=room.id, product_id=product_id)
     db.add(placement)
     db.commit()
     db.refresh(placement)
-    return {"id": placement.id, "room_id": room.id, "product_id": product_id}
+    return {
+        "id": placement.id,
+        "room_id": room.id,
+        "product_id": product_id,
+        "is_demo": eligible[product_id],
+    }

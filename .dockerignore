@@ -1,0 +1,17 @@
+.git
+.venv
+venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+.idea
+.vscode
+**/.env
+**/*.db
+backend/data/cache
+backend/data/uploads
+backend/data/images
+backend/data/models
+**/*.pyc
+**/agent-transcripts
+**/terminals

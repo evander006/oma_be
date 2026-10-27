@@ -3,6 +3,7 @@ services:
     name: oma-dom-api
     runtime: docker
     plan: free
+    branch: codex/digital-home-ecosystem
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/v1/health

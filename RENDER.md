@@ -17,7 +17,7 @@ git push origin main
 3. Settings:
    - **Name:** `oma-dom-api`
    - **Language / Runtime:** **Docker**
-   - **Branch:** `main`
+   - **Branch:** `codex/digital-home-ecosystem` (or `main` after merge)
    - **Dockerfile path:** `./Dockerfile`
    - **Instance type:** **Free**
 4. **Environment variables** (Environment tab):

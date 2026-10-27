@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
@@ -43,6 +45,40 @@ def list_properties(
     db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ) -> list[Property]:
     return db.query(Property).filter(Property.user_id == user.id).all()
+
+
+@router.get("/properties/{property_id}", response_model=PropertyOut)
+def get_property(
+    property_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Property:
+    prop = (
+        db.query(Property)
+        .filter(Property.id == property_id, Property.user_id == user.id)
+        .first()
+    )
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+    return prop
+
+
+@router.delete("/properties/{property_id}")
+def delete_property(
+    property_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    prop = (
+        db.query(Property)
+        .filter(Property.id == property_id, Property.user_id == user.id)
+        .first()
+    )
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+    db.delete(prop)
+    db.commit()
+    return {"deleted": True, "id": property_id}
 
 
 @router.post("/rooms", response_model=RoomOut)
@@ -129,6 +165,33 @@ def list_room_photos(
 ) -> list[RoomPhotoOut]:
     room = require_room_owner(db, room_id, user)
     return [serialize_room_photo(p) for p in room.photos]
+
+
+@router.delete("/rooms/{room_id}/photos/{photo_id}")
+def delete_room_photo(
+    room_id: int,
+    photo_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    room = require_room_owner(db, room_id, user)
+    photo = (
+        db.query(RoomPhoto)
+        .filter(RoomPhoto.id == photo_id, RoomPhoto.room_id == room.id)
+        .first()
+    )
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    settings = get_settings()
+    path = settings.uploads_dir / "rooms" / str(room.id) / Path(photo.relative_path).name
+    db.delete(photo)
+    db.commit()
+    if path.is_file():
+        try:
+            path.unlink()
+        except OSError:
+            pass
+    return {"deleted": True, "id": photo_id}
 
 
 @router.get("/rooms/{room_id}/recommendations", response_model=RecommendationsResponse)

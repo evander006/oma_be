@@ -3,7 +3,9 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_room_owner
+from app.core.config import get_settings
 from app.db.models import User
+from app.db.models.renovation import DesignSession
 from app.db.session import get_db
 from app.services.asset_urls import (
     resolve_product_image_path,
@@ -41,4 +43,34 @@ def serve_room_photo(
     path = resolve_room_photo_path(room_id, filename)
     if not path:
         raise HTTPException(status_code=404, detail="Photo not found")
+    return FileResponse(path)
+
+
+@router.get("/visualizations/{session_id}/{filename}")
+def serve_visualization(
+    session_id: int,
+    filename: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> FileResponse:
+    session = (
+        db.query(DesignSession)
+        .filter(DesignSession.id == session_id, DesignSession.user_id == user.id)
+        .first()
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Visualization not found")
+    settings = get_settings()
+    safe_name = filename.replace("\\", "/").split("/")[-1]
+    if ".." in safe_name or not safe_name:
+        raise HTTPException(status_code=404, detail="Visualization not found")
+    path = settings.uploads_dir / "visualizations" / str(session_id) / safe_name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Visualization not found")
+    try:
+        path.resolve().relative_to(
+            (settings.uploads_dir / "visualizations").resolve()
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="Visualization not found") from exc
     return FileResponse(path)

@@ -214,11 +214,34 @@ def recommend_from_room(
         uncertainties=list(structured.get("uncertainties") or []),
         missing_info=list(structured.get("missing_info") or []),
     )
+    warnings: list[str] = []
+    alternatives: list[RecommendationItem] = []
+    if not recommendations:
+        warnings.append("Подходящих товаров по жёстким ограничениям не найдено.")
+        # Offer nearest catalog alternatives without inventing IDs.
+        for p in candidates[: min(3, limit)]:
+            alternatives.append(
+                RecommendationItem(
+                    product_id=p.id,
+                    reason="Альтернатива из каталога вне жёсткого отбора.",
+                    product=serialize_product(p),
+                )
+            )
+    for p in ordered:
+        if p.width_mm is None and p.height_mm is None and p.depth_mm is None:
+            warnings.append(
+                f"Габариты товара {p.id} неизвестны — совместимость с комнатой не проверена."
+            )
+            break
+
     return RecommendationsResponse(
         room_analysis=analysis,
         recommendations=recommendations,
         budget=_budget_summary(ordered, max_budget),
         explanation="Рекомендации основаны на локальном каталоге; бюджет проверен на сервере.",
+        alternatives=alternatives,
+        warnings=warnings,
+        missing_information=list(structured.get("missing_info") or []),
     )
 
 

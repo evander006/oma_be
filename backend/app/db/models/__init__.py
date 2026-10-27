@@ -14,23 +14,10 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base
-
-
-class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
+from app.db.base import Base, TimestampMixin
 
 
 class User(Base, TimestampMixin):
@@ -93,6 +80,10 @@ class Product(Base, TimestampMixin):
     weight_kg: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 3), nullable=True)
     materials: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     colors: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    style_tags: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # comma-separated
+    room_types: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # comma-separated
+    installation_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    installation_compatible: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     validation_status: Mapped[str] = mapped_column(String(64), default="validated")
     source: Mapped[str] = mapped_column(String(64), default="oma.by")
     retrieved_at: Mapped[Optional[datetime]] = mapped_column(
@@ -325,3 +316,22 @@ class ChatMessage(Base, TimestampMixin):
     meta_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     session: Mapped[ChatSession] = relationship(back_populates="messages")
+
+
+# Renovation / design / loyalty domain (imported for metadata registration).
+from app.db.models.renovation import (  # noqa: E402
+    DesignSession,
+    DesignVersion,
+    Estimate,
+    EstimateLine,
+    GeneratedVisualization,
+    InstallationRequest,
+    LoyaltyAccount,
+    LoyaltyTransaction,
+    RenovationProject,
+    RenovationRequest,
+    RenovationService,
+    RenovationWorkItem,
+    RoomAnalysis,
+    SelectedDesignProduct,
+)

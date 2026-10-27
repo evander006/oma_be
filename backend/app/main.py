@@ -9,11 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import get_or_create_demo_user
-from app.api.routes import ai, assets, commerce, health, products, profile, rooms
+from app.api.routes import ai, assets, commerce, health, loyalty, products, profile, renovation, rooms
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
 from app.db.base import Base
 from app.db.models import InstallationService, Product
+from app.db.models.renovation import RenovationService
+from app.db.schema_utils import ensure_sqlite_product_columns
 from app.db.session import SessionLocal, engine
 from app.services.catalog_service import ensure_seed_categories, upsert_products_from_json
 
@@ -39,6 +41,63 @@ def seed_installation_services() -> None:
                         description="Демонстрационный пакет для нескольких изделий",
                         price=Decimal("129.00"),
                         estimated_hours=Decimal("5"),
+                    ),
+                ]
+            )
+            db.commit()
+        if db.query(RenovationService).count() == 0:
+            # Development price rules — not official OMA contractor rates.
+            db.add_all(
+                [
+                    RenovationService(
+                        code="paint_walls",
+                        name="Покраска стен",
+                        category="отделка",
+                        description="Demo: покраска стен",
+                        unit="м²",
+                        unit_price=Decimal("12.00"),
+                        price_verified=False,
+                    ),
+                    RenovationService(
+                        code="wallpaper",
+                        name="Поклейка обоев",
+                        category="отделка",
+                        unit="м²",
+                        unit_price=Decimal("8.50"),
+                        price_verified=False,
+                    ),
+                    RenovationService(
+                        code="tile_floor",
+                        name="Укладка плитки",
+                        category="пол",
+                        unit="м²",
+                        unit_price=Decimal("25.00"),
+                        price_verified=False,
+                    ),
+                    RenovationService(
+                        code="plumbing",
+                        name="Сантехнические работы",
+                        category="сантехника",
+                        unit="час",
+                        unit_price=None,
+                        price_verified=False,
+                    ),
+                    RenovationService(
+                        code="electrical",
+                        name="Электромонтаж",
+                        category="электрика",
+                        unit="час",
+                        unit_price=None,
+                        price_verified=False,
+                    ),
+                    RenovationService(
+                        code="furniture_assembly",
+                        name="Сборка мебели",
+                        category="мебель",
+                        unit="шт",
+                        unit_price=Decimal("35.00"),
+                        price_verified=False,
+                        is_standalone=True,
                     ),
                 ]
             )
@@ -78,6 +137,7 @@ def seed_catalog_from_json_if_empty() -> None:
 async def lifespan(_: FastAPI):
     setup_logging()
     Base.metadata.create_all(bind=engine)
+    ensure_sqlite_product_columns(engine)
     seed_installation_services()
     seed_catalog_from_json_if_empty()
     yield
@@ -114,6 +174,8 @@ def create_app() -> FastAPI:
     app.include_router(rooms.router, prefix=prefix)
     app.include_router(commerce.router, prefix=prefix)
     app.include_router(ai.router, prefix=prefix)
+    app.include_router(renovation.router, prefix=prefix)
+    app.include_router(loyalty.router, prefix=prefix)
     return app
 
 

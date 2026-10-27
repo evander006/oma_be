@@ -212,6 +212,19 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
+    # Development loyalty accrual (idempotent per order).
+    try:
+        from app.services.loyalty_service import LoyaltyError, earn_for_order
+
+        earn_for_order(
+            db,
+            user_id=user.id,
+            order_id=order.id,
+            order_total=total,
+            idempotency_key=f"order-earn-{order.id}",
+        )
+    except LoyaltyError:
+        pass
     return OrderOut(
         id=order.id,
         status=order.status,

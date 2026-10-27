@@ -98,6 +98,10 @@ class ProductOut(APIModel):
     weight_kg: Optional[Decimal] = None
     materials: Optional[str] = None
     colors: Optional[str] = None
+    style_tags: Optional[str] = None
+    room_types: Optional[str] = None
+    installation_notes: Optional[str] = None
+    installation_compatible: Optional[bool] = None
     validation_status: str
     has_3d_model: bool
     primary_image_url: Optional[str] = None
@@ -293,3 +297,128 @@ class RecommendationsResponse(APIModel):
     recommendations: list[RecommendationItem] = Field(default_factory=list)
     budget: BudgetSummary
     explanation: str = ""
+    alternatives: list[RecommendationItem] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    missing_information: list[str] = Field(default_factory=list)
+
+
+class StructuredRoomAnalysisOut(APIModel):
+    id: Optional[int] = None
+    room_type: Optional[str] = None
+    room_type_confidence: Optional[float] = None
+    visible_furniture: list[str] = Field(default_factory=list)
+    dominant_colors: list[str] = Field(default_factory=list)
+    approximate_style: Optional[str] = None
+    lighting: list[str] = Field(default_factory=list)
+    furnishing_opportunities: list[str] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+    uncertainties: list[str] = Field(default_factory=list)
+    questions: list[str] = Field(default_factory=list)
+    summary: str = ""
+    provider: Optional[str] = None
+    model_id: Optional[str] = None
+
+
+class AnalyzeRoomRequest(APIModel):
+    room_id: int
+    prompt: str = "Проанализируй комнату по фото"
+    photo_ids: list[int] = Field(default_factory=list)
+    style: Optional[str] = None
+    budget: Optional[Decimal] = None
+    category_ids: list[str] = Field(default_factory=list)
+    keep_furniture: list[str] = Field(default_factory=list)
+    renovation_goals: Optional[str] = None
+    room_type: Optional[str] = None
+    width_m: Optional[Decimal] = None
+    length_m: Optional[Decimal] = None
+    height_m: Optional[Decimal] = None
+
+
+class DesignSessionCreate(APIModel):
+    room_id: Optional[int] = None
+    title: Optional[str] = None
+    style: Optional[str] = None
+    budget: Optional[Decimal] = None
+
+
+class DesignSessionGenerateRequest(APIModel):
+    product_ids: list[str] = Field(default_factory=list)
+    instructions: Optional[str] = None
+    photo_ids: list[int] = Field(default_factory=list)
+    idempotency_key: Optional[str] = None
+    replace_product_id: Optional[str] = None
+    with_new_product_id: Optional[str] = None
+
+
+class RenovationProjectCreate(APIModel):
+    name: str
+    property_id: Optional[int] = None
+    room_id: Optional[int] = None
+    renovation_type: Optional[str] = None
+    scope: Optional[str] = "turnkey"
+    area_m2: Optional[Decimal] = None
+    room_count: Optional[int] = None
+    building_type: Optional[str] = None
+    condition: Optional[str] = None
+    work_categories: list[str] = Field(default_factory=list)
+    budget_min: Optional[Decimal] = None
+    budget_max: Optional[Decimal] = None
+    timeline_notes: Optional[str] = None
+    style_preferences: Optional[str] = None
+    materials_preferences: Optional[str] = None
+    customer_notes: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    address: Optional[str] = None
+    work_items: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class RenovationProjectPatch(APIModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    budget_min: Optional[Decimal] = None
+    budget_max: Optional[Decimal] = None
+    timeline_notes: Optional[str] = None
+    style_preferences: Optional[str] = None
+    materials_preferences: Optional[str] = None
+    customer_notes: Optional[str] = None
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    address: Optional[str] = None
+
+
+class RenovationRequestCreate(APIModel):
+    project_id: Optional[int] = None
+    request_type: str = "turnkey"
+    notes: Optional[str] = None
+    payload: Optional[dict[str, Any]] = None
+    submit: bool = True
+
+
+class EstimateCreate(APIModel):
+    project_id: Optional[int] = None
+    product_ids: list[str] = Field(default_factory=list)
+    product_quantities: dict[str, Decimal] = Field(default_factory=dict)
+    work_items: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class InstallationRequestCreate(APIModel):
+    product_id: Optional[str] = None
+    service_id: Optional[int] = None
+    room_id: Optional[int] = None
+    address: Optional[str] = None
+    preferred_dates: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class LoyaltyRedeemRequest(APIModel):
+    points: int
+    reason: str = "redeem"
+    idempotency_key: str
+
+
+class LoyaltyEarnRequest(APIModel):
+    points: int
+    reason: str
+    idempotency_key: str
+    order_id: Optional[int] = None

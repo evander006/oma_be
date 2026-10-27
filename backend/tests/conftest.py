@@ -60,12 +60,21 @@ def db(db_engine):
 
 
 @pytest.fixture()
-def client(db_engine, settings):
-    Session = sessionmaker(bind=db_engine, autoflush=False, autocommit=False)
+def client(db_engine, settings, monkeypatch):
+    """Bind app engine/session to the isolated test database before lifespan runs."""
+    import app.db.session as db_session
+    import app.main as main_mod
+
+    TestingSessionLocal = sessionmaker(bind=db_engine, autoflush=False, autocommit=False)
+    monkeypatch.setattr(db_session, "engine", db_engine)
+    monkeypatch.setattr(db_session, "SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr(main_mod, "engine", db_engine)
+    monkeypatch.setattr(main_mod, "SessionLocal", TestingSessionLocal)
+
     app = create_app()
 
     def _override():
-        session = Session()
+        session = TestingSessionLocal()
         try:
             yield session
         finally:
@@ -79,15 +88,38 @@ def client(db_engine, settings):
 
 @pytest.fixture()
 def seeded_products(db):
-    db.add(Category(id="lighting", name="Освещение", slug="osveshchenie"))
-    db.add(Category(id="furniture", name="Мебель", slug="mebel"))
+    for cat_id, name, slug in (
+        ("lighting", "Освещение", "osveshchenie"),
+        ("furniture", "Мебель", "mebel"),
+    ):
+        if not db.get(Category, cat_id):
+            # Avoid slug clash with lifespan seed categories.
+            existing_slug = db.query(Category).filter(Category.slug == slug).first()
+            if existing_slug:
+                continue
+            db.add(Category(id=cat_id, name=name, slug=slug))
+    db.flush()
+    # Prefer seeded category ids when present; else any matching slug.
+    lighting = db.get(Category, "lighting") or db.query(Category).filter(
+        Category.slug == "osveshchenie"
+    ).first()
+    furniture = db.get(Category, "furniture") or db.query(Category).filter(
+        Category.slug.contains("mebel")
+    ).first()
+    lighting_id = lighting.id if lighting else None
+    furniture_id = furniture.id if furniture else None
+
     products = []
     for i in range(3):
+        existing = db.get(Product, f"oma-test-{i}")
+        if existing:
+            products.append(existing)
+            continue
         p = Product(
             id=f"oma-test-{i}",
             name=f"Тестовый товар {i}",
             source_url=f"https://www.oma.by/test-{i}-p",
-            category_id="lighting" if i < 2 else "furniture",
+            category_id=lighting_id if i < 2 else furniture_id,
             price=Decimal("100") + i * 50,
             currency="BYN",
             description="Лампа для кухни" if i < 2 else "Стол",
@@ -109,16 +141,9 @@ def seeded_products(db):
 
 @pytest.fixture()
 def demo_user(db):
-    user = User(
-        email="anna@oma.local",
-        display_name="Анна",
-        is_demo=True,
-        hashed_password=None,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    from app.api.deps import get_or_create_demo_user
+
+    return get_or_create_demo_user(db)
 
 
 @pytest.fixture()

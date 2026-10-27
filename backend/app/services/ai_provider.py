@@ -76,6 +76,15 @@ class MockAIProvider(AIProvider):
         has_images = bool(images)
         analysis = {
             "summary": "Макетный анализ комнаты (mock AI). Визуальные детали не извлекались из реального фото-провайдера.",
+            "room_type": "other",
+            "room_type_confidence": 0.4,
+            "visible_furniture": ["неизвестно (mock)"],
+            "dominant_colors": ["нейтральные"],
+            "approximate_style": "не определён",
+            "lighting": ["недостаточно данных без реального vision-провайдера"],
+            "furnishing_opportunities": ["уточните категории товаров"],
+            "constraints": [],
+            "questions": ["Укажите размеры комнаты в метрах"],
             "observations": [
                 "Пользователь загрузил фото" if has_images else "Фото не приложено",
                 f"Запрос: {user_text[:180]}",
@@ -91,6 +100,7 @@ class MockAIProvider(AIProvider):
             ],
             "ranked_product_ids": [],
             "reasons": {},
+            "explanation": "Mock ranking",
         }
         if "CATALOG_JSON:" in user_text:
             try:
@@ -401,7 +411,22 @@ def get_ai_provider() -> AIProvider:
             ),
         )
 
+    if provider == "nvidia":
+        key = settings.nvidia_api_key or settings.openrouter_api_key
+        if not key:
+            raise AIProviderError(
+                "NVIDIA_API_KEY не задан. Укажите ключ NVIDIA API Catalog / NIM.",
+                status_code=503,
+            )
+        return OpenAICompatibleVisionProvider(
+            api_key=key,
+            model=settings.nvidia_model,
+            base_url=settings.nvidia_base_url,
+            fallback_models=[],
+            provider_label="NVIDIA",
+        )
+
     raise AIProviderError(
-        f"Неизвестный AI_PROVIDER={provider!r}. Используйте openrouter|gemini|mock.",
+        f"Неизвестный AI_PROVIDER={provider!r}. Используйте openrouter|nvidia|gemini|mock.",
         status_code=500,
     )

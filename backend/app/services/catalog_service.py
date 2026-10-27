@@ -80,6 +80,19 @@ def upsert_products_from_json(db: Session, json_path: Path | None = None) -> dic
             setattr(product, dim, Decimal(str(val)) if val is not None else None)
         product.materials = item.get("materials")
         product.colors = item.get("colors")
+        style_tags = item.get("style_tags")
+        if isinstance(style_tags, list):
+            product.style_tags = ",".join(str(x) for x in style_tags)
+        else:
+            product.style_tags = style_tags
+        room_types = item.get("room_types")
+        if isinstance(room_types, list):
+            product.room_types = ",".join(str(x) for x in room_types)
+        else:
+            product.room_types = room_types
+        product.installation_notes = item.get("installation_notes")
+        if "installation_compatible" in item:
+            product.installation_compatible = item.get("installation_compatible")
         product.validation_status = item.get("validation_status") or "validated"
         product.source = item.get("source") or "oma.by"
         product.retrieved_at = _parse_dt(item.get("retrieved_at"))
@@ -120,6 +133,14 @@ def list_products(
     category_id: str | None = None,
     min_price: Decimal | None = None,
     max_price: Decimal | None = None,
+    color: str | None = None,
+    material: str | None = None,
+    style: str | None = None,
+    room_type: str | None = None,
+    installation_compatible: bool | None = None,
+    max_width_mm: Decimal | None = None,
+    max_height_mm: Decimal | None = None,
+    max_depth_mm: Decimal | None = None,
     sort: str = "name",
     page: int = 1,
     page_size: int = 20,
@@ -139,6 +160,24 @@ def list_products(
         filters.append(Product.price >= min_price)
     if max_price is not None:
         filters.append(Product.price <= max_price)
+    if color:
+        filters.append(Product.colors.ilike(f"%{color}%"))
+    if material:
+        filters.append(Product.materials.ilike(f"%{material}%"))
+    if style:
+        filters.append(Product.style_tags.ilike(f"%{style}%"))
+    if room_type:
+        filters.append(Product.room_types.ilike(f"%{room_type}%"))
+    if installation_compatible is not None:
+        filters.append(Product.installation_compatible.is_(installation_compatible))
+    # Dimensions: only exclude products with *known* dimensions that exceed limits.
+    # Unknown dimensions stay in the result set (never assume fit).
+    if max_width_mm is not None:
+        filters.append(or_(Product.width_mm.is_(None), Product.width_mm <= max_width_mm))
+    if max_height_mm is not None:
+        filters.append(or_(Product.height_mm.is_(None), Product.height_mm <= max_height_mm))
+    if max_depth_mm is not None:
+        filters.append(or_(Product.depth_mm.is_(None), Product.depth_mm <= max_depth_mm))
     if filters:
         query = query.filter(and_(*filters))
 
@@ -171,10 +210,40 @@ def filter_candidates_for_ai(
     budget: Decimal | None,
     category_ids: list[str] | None,
     limit: int = 20,
+    color: str | None = None,
+    material: str | None = None,
+    style: str | None = None,
+    room_type: str | None = None,
+    exclude_ids: list[str] | None = None,
+    max_width_mm: Decimal | None = None,
+    max_height_mm: Decimal | None = None,
+    max_depth_mm: Decimal | None = None,
+    require_availability: bool = False,
 ) -> list[Product]:
     query = db.query(Product).options(joinedload(Product.images))
     if category_ids:
         query = query.filter(Product.category_id.in_(category_ids))
     if budget is not None:
         query = query.filter(or_(Product.price.is_(None), Product.price <= budget))
+    if color:
+        query = query.filter(Product.colors.ilike(f"%{color}%"))
+    if material:
+        query = query.filter(Product.materials.ilike(f"%{material}%"))
+    if style:
+        query = query.filter(Product.style_tags.ilike(f"%{style}%"))
+    if room_type:
+        query = query.filter(Product.room_types.ilike(f"%{room_type}%"))
+    if exclude_ids:
+        query = query.filter(Product.id.notin_(exclude_ids))
+    if max_width_mm is not None:
+        query = query.filter(or_(Product.width_mm.is_(None), Product.width_mm <= max_width_mm))
+    if max_height_mm is not None:
+        query = query.filter(or_(Product.height_mm.is_(None), Product.height_mm <= max_height_mm))
+    if max_depth_mm is not None:
+        query = query.filter(or_(Product.depth_mm.is_(None), Product.depth_mm <= max_depth_mm))
+    if require_availability:
+        query = query.filter(
+            Product.availability.isnot(None),
+            Product.availability.notin_(["out_of_stock", "unavailable", "нет в наличии"]),
+        )
     return query.order_by(Product.price.asc().nulls_last(), Product.name.asc()).limit(limit).all()

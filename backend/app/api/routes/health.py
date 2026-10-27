@@ -12,6 +12,8 @@ def health() -> HealthResponse:
     provider = (settings.ai_provider or "openrouter").lower()
     if provider == "openrouter":
         model = settings.openrouter_model
+    elif provider == "nvidia":
+        model = settings.nvidia_model
     elif provider == "gemini":
         model = settings.gemini_model
     elif provider == "mock":

@@ -59,6 +59,25 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     gemini_fallback_models: str = "gemini-2.5-flash-lite,gemini-3.8-flash"
 
+    # Optional NVIDIA API Catalog / NIM (integrate.api.nvidia.com).
+    # Prefer OpenRouter for free VL; set AI_PROVIDER=nvidia when using a NIM key.
+    nvidia_api_key: str | None = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
+    nvidia_model: str = "nvidia/nemotron-3.5-super-vl"
+
+    # Image generation / editing — separate from VL chat.
+    # none | mock | nvidia-nim (nvidia-nim client not wired until endpoint confirmed)
+    image_gen_provider: str = "none"
+    image_gen_model: str | None = None
+    image_gen_max_product_refs: int = 4
+    image_gen_timeout_seconds: float = 120.0
+
+    # Development loyalty rules (not official OMA program).
+    loyalty_earn_rate_per_byn: float = 1.0  # 1 point per 1 BYN
+    loyalty_redeem_value_per_point: float = 0.01  # 0.01 BYN per point (demo)
+    loyalty_allow_negative: bool = False
+    loyalty_program_label: str = "OMA Dom development loyalty (demo rules)"
+
     oma_base_url: str = "https://www.oma.by"
     oma_request_timeout: float = 30.0
     oma_max_retries: int = 3

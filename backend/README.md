@@ -1,6 +1,8 @@
 # OMA. Дом — Backend
 
-FastAPI backend for the OMA Dom Flutter MVP: local OMA.by product catalog, assets, 3D GLB approximations, rooms/cart/favorites/orders, and a multimodal AI assistant (Gemini or mock).
+FastAPI backend for the OMA Dom renovation / home-improvement platform: local OMA.by product catalog, rooms and photos, AI room analysis and catalog-grounded recommendations, design sessions, renovation projects/estimates, cart/orders, and a **development** loyalty engine.
+
+Flutter UI is out of scope for this repository’s backend work.
 
 ## Quick start
 
@@ -16,20 +18,69 @@ python -m venv .venv
 pip install -r ../requirements.txt
 copy .env.example .env   # or cp .env.example .env
 
-# DB schema (create_all on startup also works; Alembic optional)
+# Schema: create_all on startup (Alembic optional)
 alembic upgrade head
 
-# Parse 20 products from oma.by (public pages; rate-limited)
+# Parse sample products from oma.by (public pages; rate-limited)
 python scripts/import_products.py --max-products 20
 
-# Generate procedural GLB approximations
+# Generate procedural GLB placeholders (real GLBs will replace these later)
 python scripts/generate_3d_assets.py
 
-# Run API
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+Swagger: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+## Environment
+
+See `.env.example`. Important:
+
+| Variable | Purpose |
+|----------|---------|
+| `AI_PROVIDER` | `openrouter` (default), `nvidia`, `gemini`, or `mock` |
+| `OPENROUTER_API_KEY` | OpenRouter key (NVIDIA VL routed through OpenRouter) |
+| `OPENROUTER_MODEL` | Default `nvidia/nemotron-3.5-super-vl:free` |
+| `NVIDIA_API_KEY` | Optional direct NVIDIA API Catalog / NIM |
+| `IMAGE_GEN_PROVIDER` | `none` (default), `mock` (tests only) |
+| `LOYALTY_*` | Explicitly labeled **development** loyalty rules |
+
+Authentication is disabled for the MVP; demo user **Анна** (`GET /api/v1/me`).
+
+**Privacy:** with `openrouter` / `nvidia` / `gemini`, room photos leave this server and are processed under the provider’s policies. Do not log image bytes or API keys.
+
+## AI capabilities
+
+Configured as **separate** interfaces (`GET /api/v1/ai/capabilities`):
+
+1. **Vision-language** — room photo analysis (image **input**, JSON/text **output**). Uses OpenRouter NVIDIA VL by default.
+2. **Text reasoning** — catalog ranking explanations (same chat/VL client; IDs validated in Python).
+3. **Image generation/editing** — **not** provided by the free VL chat model. Default `IMAGE_GEN_PROVIDER=none` returns status `unavailable`, preserves design product selections, and allows retry. Do not treat text-only prompts as proof of product placement.
+
+Product reference images are loaded for a future edit endpoint; the current default does **not** claim a successful product-conditioned visualization.
+
+## Catalog
+
+- Local `data/products/products.json` + SQLite (currently **~20** sample products in-repo; parser/import path preserved for a larger dump when provided).
+- Filters: category, budget/price, color, material, style tags, room type, dimensions (unknown dimensions are never treated as a fit), installation flag.
+- 3D: procedural/sample GLBs today; real GLB assets can be dropped under `data/models/products/{product_id}.glb` later without changing product IDs.
+
+## Renovation & loyalty
+
+- Projects, standalone repair requests, preliminary estimates (product subtotals from catalog; labor only when a configured rule exists — demo rates are **unverified**).
+- Status workflow does **not** invent contractor bookings.
+- Loyalty: balance, earn/redeem, idempotent transactions, demo rewards. Rules are development-only.
+
+## Storage
+
+| Content | Location |
+|---------|----------|
+| Product images | `data/images/products/{id}/` |
+| 3D models | `data/models/products/{id}.glb` |
+| Room photos | `data/uploads/rooms/{room_id}/` |
+| Visualizations | `data/uploads/visualizations/{session_id}/` |
+
+API responses use relative asset URLs under `/api/v1/assets/...`, never absolute server paths.
 
 ## Tests
 
@@ -38,35 +89,24 @@ cd backend
 pytest -q
 ```
 
-Unit tests use fixtures + mock AI and do not need network or Gemini keys.
+Unit tests use `AI_PROVIDER=mock` and do not need live credentials.
 
-## Environment
+Optional live check (manual): set `OPENROUTER_API_KEY` and call `POST /api/v1/ai/analyze-room` with a real room photo.
 
-See `.env.example`. Important:
+## API map (v1)
 
-- `AI_PROVIDER=mock` — offline / CI
-- `AI_PROVIDER=openrouter` + `OPENROUTER_API_KEY` — **recommended** (non-Google free vision models)
-- `AI_PROVIDER=gemini` + `GEMINI_API_KEY` — optional (often overloaded on free tier)
-- Authentication disabled for MVP; demo user **Анна** (`GET /api/v1/me`)
+- `GET /health`
+- Catalog: `/products`, `/products/{id}`, `/categories`
+- Properties/rooms/photos
+- AI: `/ai/chat`, `/ai/analyze-room`, `/ai/recommendations`, `/ai/design-sessions`, `.../generate`, `/ai/capabilities`
+- Renovation: `/renovation/projects`, `/renovation/requests`, `/renovation/estimates`, `/renovation/services`
+- Loyalty: `/loyalty/account`, `/loyalty/transactions`, `/loyalty/rewards`
+- Commerce: favorites, cart, orders
 
-**Privacy:** with `openrouter` / `gemini`, room photos are sent to that cloud provider for analysis.
+## Known limitations
 
-## Docker
-
-From repo root:
-
-```bash
-docker compose up --build
-```
-
-## Manual import fallback
-
-If automated retrieval is blocked, place a JSON array at `data/products/products.json` (same schema as parser output), put images under `data/images/products/{product_id}/`, then:
-
-```bash
-python scripts/import_products.py --skip-fetch
-```
-
-## robots.txt note
-
-OMA.by disallows `/api/*`, search, personal pages, etc. Category and product HTML pages used by this parser are not disallowed. The crawler uses a clear User-Agent, delays, caching, and only public fields.
+- Catalog size in this repo is ~20 products, not 4000+ (import pipeline ready).
+- Image editing with OMA product references is **not** confirmed against a live NVIDIA image-edit endpoint; generation status is honest (`unavailable` / `pending` / `failed`).
+- Loyalty and renovation labor prices are **demo / development** configuration.
+- Real GLB catalog assets are pending user delivery.
+- Scheduling is never auto-confirmed.

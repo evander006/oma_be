@@ -114,6 +114,7 @@ class PropertyCreate(APIModel):
     name: str
     address: Optional[str] = None
     property_type: Optional[str] = None
+    tenure: Optional[str] = None
 
 
 class PropertyOut(APIModel):
@@ -122,6 +123,7 @@ class PropertyOut(APIModel):
     name: str
     address: Optional[str] = None
     property_type: Optional[str] = None
+    tenure: Optional[str] = None
 
 
 class RoomCreate(APIModel):
@@ -133,6 +135,9 @@ class RoomCreate(APIModel):
     length_m: Optional[Decimal] = None
     height_m: Optional[Decimal] = None
     style_preference: Optional[str] = None
+    wall_material: Optional[str] = None
+    floor_material: Optional[str] = None
+    ceiling_material: Optional[str] = None
 
 
 class RoomOut(APIModel):
@@ -145,6 +150,9 @@ class RoomOut(APIModel):
     length_m: Optional[Decimal] = None
     height_m: Optional[Decimal] = None
     style_preference: Optional[str] = None
+    wall_material: Optional[str] = None
+    floor_material: Optional[str] = None
+    ceiling_material: Optional[str] = None
 
 
 class RoomPhotoOut(APIModel):

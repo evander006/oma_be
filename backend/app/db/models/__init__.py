@@ -145,6 +145,7 @@ class Property(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     address: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     property_type: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    tenure: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
 
     user: Mapped[User] = relationship(back_populates="properties")
     rooms: Mapped[list["Room"]] = relationship(
@@ -164,6 +165,9 @@ class Room(Base, TimestampMixin):
     length_m: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 3), nullable=True)
     height_m: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 3), nullable=True)
     style_preference: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    wall_material: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    floor_material: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    ceiling_material: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     property: Mapped[Property] = relationship(back_populates="rooms")
     photos: Mapped[list["RoomPhoto"]] = relationship(
@@ -334,4 +338,21 @@ from app.db.models.renovation import (  # noqa: E402
     RenovationWorkItem,
     RoomAnalysis,
     SelectedDesignProduct,
+)
+
+# Digital-home ecosystem domain (imported for metadata registration).
+from app.db.models.ecosystem import (  # noqa: E402
+    ContractorFavorite,
+    ContractorPortfolioItem,
+    ContractorProfile,
+    ContractorSpecialty,
+    HomeEquipment,
+    HomeHistoryEvent,
+    JourneyInstance,
+    JourneyStepProgress,
+    JourneyTemplate,
+    JourneyTemplateStep,
+    MaterialProposal,
+    MaterialProposalItem,
+    WorkOrder,
 )

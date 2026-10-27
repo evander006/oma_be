@@ -9,7 +9,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import get_or_create_demo_user
-from app.api.routes import ai, assets, commerce, health, loyalty, products, profile, renovation, rooms
+from app.api.routes import (
+    ai,
+    assets,
+    commerce,
+    ecosystem,
+    health,
+    loyalty,
+    products,
+    profile,
+    renovation,
+    rooms,
+)
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
 from app.db.base import Base
@@ -18,6 +29,7 @@ from app.db.models.renovation import RenovationService
 from app.db.schema_utils import ensure_sqlite_product_columns
 from app.db.session import SessionLocal, engine
 from app.services.catalog_service import ensure_seed_categories, upsert_products_from_json
+from app.services.ecosystem_service import seed_ecosystem_data
 
 logger = get_logger(__name__)
 
@@ -104,6 +116,7 @@ def seed_installation_services() -> None:
             db.commit()
         ensure_seed_categories(db)
         get_or_create_demo_user(db)
+        seed_ecosystem_data(db)
     finally:
         db.close()
 
@@ -176,6 +189,7 @@ def create_app() -> FastAPI:
     app.include_router(ai.router, prefix=prefix)
     app.include_router(renovation.router, prefix=prefix)
     app.include_router(loyalty.router, prefix=prefix)
+    app.include_router(ecosystem.router, prefix=prefix)
     return app
 
 

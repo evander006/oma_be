@@ -33,6 +33,7 @@ def create_property(
         name=payload.name,
         address=payload.address,
         property_type=payload.property_type,
+        tenure=payload.tenure,
     )
     db.add(prop)
     db.commit()
@@ -103,6 +104,9 @@ def create_room(
         length_m=payload.length_m,
         height_m=payload.height_m,
         style_preference=payload.style_preference,
+        wall_material=payload.wall_material,
+        floor_material=payload.floor_material,
+        ceiling_material=payload.ceiling_material,
     )
     db.add(room)
     db.commit()

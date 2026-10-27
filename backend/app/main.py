@@ -21,6 +21,7 @@ from app.api.routes import (
     renovation,
     rooms,
     scene,
+    pdf_passport,
 )
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
@@ -187,6 +188,7 @@ def create_app() -> FastAPI:
     app.include_router(assets.router, prefix=prefix)
     app.include_router(rooms.router, prefix=prefix)
     app.include_router(scene.router, prefix=prefix)
+    app.include_router(pdf_passport.router, prefix=prefix)
     app.include_router(commerce.router, prefix=prefix)
     app.include_router(ai.router, prefix=prefix)
     app.include_router(renovation.router, prefix=prefix)

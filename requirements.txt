@@ -19,3 +19,4 @@ email-validator==2.2.0
 numpy==2.2.1
 pygltflib==1.16.2
 google-genai>=1.0.0
+reportlab==4.2.5

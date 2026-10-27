@@ -320,9 +320,9 @@ def _shared_context(db: Session, order: WorkOrder, fields: list[str]) -> dict[st
     if "room_dimensions" in fields:
         context["room_dimensions"] = (
             {
-                "width_m": room.width_m,
-                "length_m": room.length_m,
-                "height_m": room.height_m,
+                "width_m": float(room.width_m) if room.width_m is not None else None,
+                "length_m": float(room.length_m) if room.length_m is not None else None,
+                "height_m": float(room.height_m) if room.height_m is not None else None,
             }
             if room
             else None

@@ -104,6 +104,9 @@ def test_contractor_work_order_proposal_completion_flow(client, seeded_products)
     contractor_order = next(row for row in dashboard.json() if row["id"] == order_id)
     assert contractor_order["property_id"] is None
     assert contractor_order["shared_context"]["room_dimensions"]["width_m"] == 4.2
+    assert contractor_order["shared_context"]["room_dimensions"]["length_m"] == 5.1
+    assert contractor_order["shared_context"]["room_dimensions"]["height_m"] is None
+    assert isinstance(contractor_order["shared_context"]["room_dimensions"]["width_m"], float)
     assert "address" not in contractor_order["shared_context"]
 
     accepted = client.patch(

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ОМА. Дом — 3D-квартира</title>
+<style>
+:root {font-family:system-ui,"Segoe UI",sans-serif;color:#142638;background:#e9f1f5}
+* {box-sizing:border-box}
+body {margin:0;overflow:hidden}
+#stage {position:absolute;inset:0;background:linear-gradient(160deg,#e9f3f7,#cbdbe3)}
+#stage canvas {display:block;width:100%;height:100%;touch-action:none}
+.toolbar {position:absolute;top:14px;left:14px;z-index:3;max-width:min(340px,68vw);
+background:rgba(255,255,255,.94);border:1px solid #d6e0e7;border-radius:14px;padding:12px 14px;
+box-shadow:0 8px 30px #30465b16}
+h1 {font-size:15px;margin:0 0 4px}
+small {font-size:11px;line-height:1.4;display:block;color:#5b6e80}
+#status {margin-top:7px;font-size:12px;line-height:1.4}
+.actions {position:absolute;right:13px;top:13px;display:flex;gap:8px;z-index:3}
+button {border:1px solid #c8d6e0;background:white;color:#123b5f;border-radius:8px;padding:8px 11px;cursor:pointer;font-size:12px}
+button:focus-visible {outline:3px solid #2d8fe0}
+.panel {position:absolute;bottom:12px;left:12px;right:12px;z-index:3;max-width:430px;
+padding:12px 15px;background:rgba(255,255,255,.95);border:1px solid #d5e1e8;border-radius:12px;
+box-shadow:0 8px 32px #35495a15;display:none}
+.panel strong {font-size:15px}
+.panel p {margin:5px 0;color:#485f70;font-size:12px}
+.legend {position:absolute;bottom:12px;right:12px;background:rgba(255,255,255,.8);padding:7px 10px;
+border-radius:9px;font-size:11px;color:#456;pointer-events:none}
+@media(max-width:640px){.toolbar{top:8px;left:8px;max-width:75vw}.actions{right:8px;top:8px}.actions button{padding:7px}.legend{display:none}}
+</style>
+<script type="importmap">
+{"imports":{
+"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div class="toolbar">
+<h1 id="title">3D-паспорт квартиры</h1>
+<small>Вращение: мышь или палец · масштаб: колесо или жест · выбор: касание объекта</small>
+<div id="status">Загружаем помещения и проверяем привязанные покупки…</div>
+</div>
+<div class="actions"><button id="reset" type="button">Вся квартира</button></div>
+<div id="panel" class="panel">
+<strong id="detail-title"></strong><p id="detail-body"></p><small id="detail-note"></small>
+<button id="close" type="button" style="margin-top:9px">Закрыть</button>
+</div>
+<div class="legend">Демо-товары отмечены как демонстрационные · размеры без замеров приблизительны</div>
+<script type="module">
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+
+const stage = document.getElementById("stage");
+const status = document.getElementById("status");
+const title = document.getElementById("title");
+const panel = document.getElementById("panel");
+const detailTitle = document.getElementById("detail-title");
+const detailBody = document.getElementById("detail-body");
+const detailNote = document.getElementById("detail-note");
+const propertyId = window.location.pathname.split("/").pop();
+const focusRoomId = new URLSearchParams(window.location.search).get("room_id");
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xeaf2f6);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
+camera.position.set(14, 16, 22);
+const renderer = new THREE.WebGLRenderer({antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+const controls = new OrbitControls(camera,renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = .06;
+controls.minDistance = 3;
+controls.maxDistance = 55;
+controls.maxPolarAngle = Math.PI / 2.02;
+const hemi = new THREE.HemisphereLight(0xffffff,0xb9b8b0,2.5);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff,2.9);
+sun.position.set(10,20,6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-35;sun.shadow.camera.right=35;
+sun.shadow.camera.top=35;sun.shadow.camera.bottom=-35;
+scene.add(sun);
+const floorMat = new THREE.MeshStandardMaterial({color:0xe5d8c3,roughness:.86});
+const wallMat = new THREE.MeshStandardMaterial({color:0xfafaf5,roughness:1});
+const wallAccent = new THREE.MeshStandardMaterial({color:0xe0e8e8,roughness:1});
+const trimMat = new THREE.MeshStandardMaterial({color:0x8ea5b1,roughness:.85});
+const clickables=[];
+const homeGroup = new THREE.Group();
+scene.add(homeGroup);
+const loader = new GLTFLoader();
+let allBounds = new THREE.Box3();
+function box(parent,w,h,d,x,y,z,material,shadow=true) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+  mesh.position.set(x,y,z);mesh.receiveShadow=true;mesh.castShadow=shadow;
+  parent.add(mesh);return mesh;
+}
+function targetDetail(obj,kind) {
+  let child=obj;
+  while(child && !child.userData.interaction) child=child.parent;
+  if(!child) return;
+  const item=child.userData.interaction;
+  detailTitle.textContent=item.name;
+  detailBody.textContent=kind==="room" ? "Выбрана комната. Нажмите на предмет, чтобы посмотреть сведения."
+    : (item.demo?"Демонстрационный заказ ОМА.":"Товар из подтверждённого заказа ОМА.");
+  detailNote.textContent=kind==="room" ? (item.confirmed?"Размеры указаны пользователем.":"Размеры помещений условные — точные замеры не указаны.")
+    : (item.approx?"Форма 3D-объекта приблизительна, не точная модель производителя.":"Отображается доступная модель товара.");
+  panel.style.display="block";
+}
+function centerHome() {
+  if(allBounds.isEmpty()) return;
+  const center=allBounds.getCenter(new THREE.Vector3());
+  const size=allBounds.getSize(new THREE.Vector3());
+  const span=Math.max(size.x,size.z,5);
+  controls.target.set(center.x,0.7,center.z);
+  camera.position.set(center.x+span*1.1,span*.93+3,center.z+span*1.12);
+  controls.update();
+}
+function createRoom(info,index) {
+  const w=Math.min(9,Math.max(2.5,Number(info.width_m)||3.5));
+  const d=Math.min(10,Math.max(2.5,Number(info.length_m)||4));
+  const h=Math.min(3.4,Math.max(2.2,Number(info.height_m)||2.7));
+  const cols=3, gap=.16;
+  const col=index%cols, row=Math.floor(index/cols);
+  const x=col*8, z=row*10;
+  const g=new THREE.Group();g.position.set(x,0,z);homeGroup.add(g);
+  const floor=box(g,w,.13,d,0,-.07,0,floorMat,false);
+  floor.userData.interaction={name:info.name,confirmed:info.dimensions_confirmed};
+  clickables.push(floor);
+  // The front wall has a real door opening (two side sections and lintel).
+  const gapDoor=1.0;
+  const side=(w-gapDoor)/2;
+  box(g,side,h,.13,-(gapDoor+side)/2,h/2,-d/2,wallMat);
+  box(g,side,h,.13,(gapDoor+side)/2,h/2,-d/2,wallMat);
+  box(g,gapDoor,Math.max(.2,h-2.12),.13,0,(h+2.12)/2,-d/2,wallMat);
+  box(g,w,h,.13,0,h/2,d/2,wallMat);
+  box(g,.13,h,d,-w/2,h/2,0,wallAccent);
+  box(g,.13,h,d,w/2,h/2,0,wallMat);
+  box(g,w,.055,.13,0,.03,d/2,trimMat,false);
+  const window=box(g,Math.min(1.8,w*.55),1.1,.04,0,1.5,d/2-.09,
+    new THREE.MeshPhysicalMaterial({color:0xb6e2ef,metalness:.05,roughness:.2,transparent:true,opacity:.45}),false);
+  box(g,Math.min(1.9,w*.57),.06,.1,0,2.08,d/2-.08,trimMat,false);
+  const products=info.products||[];
+  products.forEach((p,j)=>{
+    // Only server-approved linked order products reach this function.
+    const item=new THREE.Group();
+    let px=Number(p.position?.x);
+    let pz=Number(p.position?.z);
+    if(!Number.isFinite(px))px=((j%3)-1)*1;
+    if(!Number.isFinite(pz))pz=Math.floor(j/3)*.9;
+    item.position.set(THREE.MathUtils.clamp(px,-w/2+.65,w/2-.65),
+      .06,THREE.MathUtils.clamp(pz,-d/2+.75,d/2-.75));
+    item.rotation.y=Number(p.position?.rotation_y)||0;
+    g.add(item);
+    const approximate = !p.model_url || p.model_source!=="manufacturer_exact";
+    item.userData.interaction={name:p.name,demo:p.is_demo,approx:approximate};
+    const fallback=()=>{
+      const mat=new THREE.MeshStandardMaterial({color:p.is_demo?0xd5a66e:0x91b1bc,roughness:.84});
+      box(item,.72,.72,.58,0,.36,0,mat);
+    };
+    if(p.model_url){
+      loader.load(p.model_url,(gltf)=>{
+        const model=gltf.scene;
+        const bounds=new THREE.Box3().setFromObject(model);
+        const dims=bounds.getSize(new THREE.Vector3());
+        const mx=Math.max(dims.x,dims.y,dims.z,.1);
+        model.scale.multiplyScalar(Math.min(1.3,1.6/mx));
+        model.position.y=.05;
+        model.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;}});
+        item.add(model);
+      },undefined,fallback);
+    } else fallback();
+    clickables.push(item);
+  });
+  allBounds.expandByObject(floor);
+  return {id:String(info.id),group:g,x,z};
+}
+function showError(message){status.textContent=message;}
+const roomGroups=[];
+try{
+ const response=await fetch("/api/v1/properties/"+encodeURIComponent(propertyId)+"/scene",{cache:"no-store"});
+ if(!response.ok) throw new Error("API вернул "+response.status);
+ const home=await response.json();
+ title.textContent=home.name+" · 3D";
+ const rooms=home.rooms||[];
+ if(!rooms.length) showError("Добавьте хотя бы одну комнату в паспорт жилья.");
+ else {
+   rooms.forEach((r,i)=>roomGroups.push(createRoom(r,i)));
+   const productCount=rooms.reduce((sum,r)=>sum+(r.products||[]).length,0);
+   status.textContent="Помещений: "+rooms.length+" · Привязанных товаров из заказов: "+productCount+
+      (home.is_demo_environment?" · Демонстрационный аккаунт":"");
+   centerHome();
+   if(focusRoomId){
+     const hit=roomGroups.find(r=>r.id===focusRoomId);
+     if(hit){controls.target.set(hit.x,.65,hit.z);camera.position.set(hit.x+5,7,hit.z+8);controls.update();}
+   }
+ }
+}catch(e){showError("Не удалось получить 3D-квартиру: "+e.message);}
+document.getElementById("reset").addEventListener("click",()=>{centerHome();panel.style.display="none";});
+document.getElementById("close").addEventListener("click",()=>panel.style.display="none");
+const raycaster = new THREE.Raycaster(), pointer=new THREE.Vector2();
+let downX=0,downY=0;
+renderer.domElement.addEventListener("pointerdown",e=>{downX=e.clientX;downY=e.clientY;});
+renderer.domElement.addEventListener("pointerup",e=>{
+ if(Math.hypot(e.clientX-downX,e.clientY-downY)>6)return;
+ const rect=renderer.domElement.getBoundingClientRect();
+ pointer.set(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
+ raycaster.setFromCamera(pointer,camera);
+ const hits=raycaster.intersectObjects(clickables,true);
+ if(hits.length){
+   const leaf=hits[0].object;
+   let obj=leaf;
+   while(obj&&!obj.userData.interaction)obj=obj.parent;
+   if(obj)targetDetail(obj,obj.isMesh?"room":"product");
+ }
+});
+function resize(){
+ const w=stage.clientWidth,h=stage.clientHeight;
+ camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();renderer.setSize(w,h,false);
+}
+new ResizeObserver(resize).observe(stage);resize();
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);}
+animate();
+</script>
+</body></html>

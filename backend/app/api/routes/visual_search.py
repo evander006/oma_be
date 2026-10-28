@@ -1,0 +1,180 @@
+"""Photo-to-catalog search for jury demos.
+
+Uses the configured vision model if credentials are present, otherwise computes
+*actual* color-histogram similarity to real downloaded catalog images.
+The color-only fallback is deliberately labelled and never claims object
+recognition or an exact match. User photographs are processed in memory.
+"""
+from __future__ import annotations
+
+from io import BytesIO
+from pathlib import Path
+import re
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from PIL import Image, ImageOps, UnidentifiedImageError
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.db.models import Product
+from app.db.session import get_db
+from app.services.ai_provider import AIImagePart, AIProviderError, get_ai_provider
+from app.services.asset_urls import resolve_product_image_path, serialize_product
+
+router = APIRouter(tags=["visual-search"])
+Image.MAX_IMAGE_PIXELS = 28_000_000
+ALLOWED = {"JPEG", "PNG", "WEBP"}
+
+
+def image_features(data: bytes) -> tuple[float, ...]:
+    """Compute a foreground-weighted 4-bin RGB histogram from actual pixels."""
+    try:
+        with Image.open(BytesIO(data)) as original:
+            if original.format not in ALLOWED:
+                raise ValueError("Unsupported image format")
+            image = ImageOps.exif_transpose(original).convert("RGB")
+            image.thumbnail((80, 80))
+            pixels = list(image.getdata())
+    except (OSError, ValueError, UnidentifiedImageError, Image.DecompressionBombError) as exc:
+        raise ValueError("Invalid JPEG, PNG or WEBP image") from exc
+    bins = [0.0] * 12
+    count = 0
+    for r, g, b in pixels:
+        # Ignore nearly white catalog backgrounds / room walls where possible.
+        if min(r, g, b) > 245:
+            continue
+        for index, component in enumerate((r, g, b)):
+            bins[index * 4 + min(component // 64, 3)] += 1
+        count += 1
+    if count == 0:
+        return tuple([0.0] * 12)
+    return tuple(value / count for value in bins)
+
+
+def feature_similarity(first: tuple[float, ...], second: tuple[float, ...]) -> float:
+    if not any(first) or not any(second):
+        return 0.0
+    # 0..1 histogram intersection, averaged across R/G/B.
+    return max(0.0, min(1.0, sum(min(a, b) for a, b in zip(first, second)) / 3.0))
+
+
+def _vision_terms(data: bytes) -> list[str]:
+    settings = get_settings()
+    configured = (
+        (settings.ai_provider == "openrouter" and settings.openrouter_api_key)
+        or (settings.ai_provider == "gemini" and settings.gemini_api_key)
+        or (settings.ai_provider == "nvidia" and settings.nvidia_api_key)
+    )
+    if not configured:
+        return []
+    try:
+        provider = get_ai_provider()
+        result = provider.generate(
+            system_prompt=(
+                "Ты распознаёшь товары для магазина стройматериалов. "
+                "Верни только JSON: {\"objects\":[\"смеситель\",\"светильник\"]}. "
+                "Укажи до пяти визуально распознаваемых объектов; не придумывай SKU, цену и бренд."
+            ),
+            user_text="Какие товары видны на изображении? Назови категории предметов на русском.",
+            images=[AIImagePart(mime_type="image/jpeg", data=data)],
+            expect_json=True,
+        )
+        result_dict = result.structured or {}
+        terms = result_dict.get("objects", [])
+        return [str(t).strip().casefold() for t in terms[:5] if str(t).strip()] if isinstance(terms, list) else []
+    except (AIProviderError, ValueError, KeyError, TypeError):
+        return []
+
+
+def _match_text(product: Product, terms: list[str]) -> int:
+    if not terms:
+        return 0
+    haystack = " ".join(
+        x for x in (product.name, product.subcategory, product.colors, product.description)
+        if isinstance(x, str)
+    ).casefold()
+    score = 0
+    for phrase in terms:
+        for token in re.findall(r"[^\\W\\d_]{4,}", phrase, re.UNICODE):
+            stem = token[:max(4, len(token) - 3)]
+            if stem in haystack:
+                score += 1
+    return score
+
+
+@router.post("/visual-search")
+async def visual_search(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+) -> dict:
+    settings = get_settings()
+    if file.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(status_code=415, detail="Загрузите JPEG, PNG или WEBP")
+    data = await file.read(settings.max_upload_bytes + 1)
+    await file.close()
+    if len(data) > settings.max_upload_bytes:
+        raise HTTPException(status_code=413, detail="Изображение слишком большое")
+    if not data:
+        raise HTTPException(status_code=400, detail="Файл пуст")
+
+    try:
+        query_features = image_features(data)
+        with Image.open(BytesIO(data)) as src:
+            converted = ImageOps.exif_transpose(src).convert("RGB")
+            converted.thumbnail((1024, 1024))
+            buf = BytesIO()
+            converted.save(buf, "JPEG", quality=82)
+            vision_bytes = buf.getvalue()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except (OSError, Image.DecompressionBombError) as exc:
+        raise HTTPException(status_code=400, detail="Невозможно прочитать изображение") from exc
+
+    terms = _vision_terms(vision_bytes)
+    products = db.query(Product).all()
+    scored = []
+    for product in products:
+        if not product.images:
+            continue
+        chosen = min(product.images, key=lambda img: (not img.is_primary, img.sort_order))
+        path = resolve_product_image_path(product.id, Path(chosen.relative_path).name)
+        if path is None:
+            continue
+        try:
+            # The search is grounded in actual catalog image files.
+            similarity = feature_similarity(query_features, image_features(path.read_bytes()))
+        except (OSError, ValueError):
+            continue
+        text_score = _match_text(product, terms)
+        if terms and text_score == 0:
+            continue
+        if not terms and similarity < 0.12:
+            continue
+        score = (text_score * 2.0 + similarity) if terms else similarity
+        scored.append((score, similarity, product))
+    scored.sort(key=lambda item: (-item[0], -item[1], item[2].name))
+
+    matches = []
+    for _, similarity, product in scored[:10]:
+        dto = serialize_product(product, include_details=False)
+        matches.append({
+            "product_id": product.id,
+            "name": product.name,
+            "price_byn": float(product.price) if product.price is not None else None,
+            "image_url": dto.primary_image_url,
+            "visual_color_similarity": round(similarity, 3),
+            "match_type": "possible_category_match" if terms else "visual_color_similarity",
+            "is_exact_match": False,
+        })
+    return {
+        "method": "vision_category_plus_color" if terms else "local_color_histogram",
+        "detected_objects": terms,
+        "matches": matches,
+        "note": (
+            "Категории определены vision-моделью; найденные товары не являются точными совпадениями."
+            if terms else
+            "ИИ-анализ недоступен: результаты отсортированы только по сходству цветов "
+            "с фотографиями каталога, а не по распознаванию предметов."
+        ),
+        "price_note": "Цены — исторический снимок каталога; наличие и актуальность не подтверждены.",
+    }

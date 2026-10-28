@@ -22,6 +22,7 @@ from app.api.routes import (
     rooms,
     scene,
     pdf_passport,
+    visual_search,
 )
 from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
@@ -188,6 +189,7 @@ def create_app() -> FastAPI:
     app.include_router(assets.router, prefix=prefix)
     app.include_router(rooms.router, prefix=prefix)
     app.include_router(scene.router, prefix=prefix)
+    app.include_router(visual_search.router, prefix=prefix)
     app.include_router(pdf_passport.router, prefix=prefix)
     app.include_router(commerce.router, prefix=prefix)
     app.include_router(ai.router, prefix=prefix)

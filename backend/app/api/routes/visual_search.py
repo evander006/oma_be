@@ -95,7 +95,7 @@ def _match_text(product: Product, terms: list[str]) -> int:
     ).casefold()
     score = 0
     for phrase in terms:
-        for token in re.findall(r"[^\\W\\d_]{4,}", phrase, re.UNICODE):
+        for token in re.findall(r"[A-Za-zА-Яа-яЁё]{4,}", phrase):
             stem = token[:max(4, len(token) - 3)]
             if stem in haystack:
                 score += 1

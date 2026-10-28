@@ -32,6 +32,8 @@ def test_photo_search_returns_grounded_catalog_results(client, seeded_products, 
     payload = response.json()
     assert payload["method"] == "local_color_histogram"
     assert payload["matches"][0]["product_id"] == seeded_products[0].id
+    assert payload["matches"][0]["sku"] == seeded_products[0].sku
+    assert 0 <= payload["matches"][0]["match_score"] <= 1
     assert payload["matches"][0]["is_exact_match"] is False
     assert all(row["product_id"] in {p.id for p in seeded_products} for row in payload["matches"])
 

@@ -8,6 +8,8 @@ recognition or an exact match. User photographs are processed in memory.
 from __future__ import annotations
 
 from io import BytesIO
+from functools import lru_cache
+import math
 from pathlib import Path
 import re
 
@@ -27,13 +29,20 @@ ALLOWED = {"JPEG", "PNG", "WEBP"}
 
 
 def image_features(data: bytes) -> tuple[float, ...]:
-    """Compute a foreground-weighted 4-bin RGB histogram from actual pixels."""
+    """Return a compact foreground-aware colour and shape descriptor.
+
+    The first twelve values preserve the old RGB histogram contract.  The
+    remaining values capture coarse spatial luminance and edge density, which
+    stops similarly-coloured but differently-shaped products from dominating
+    the offline fallback.
+    """
     try:
         with Image.open(BytesIO(data)) as original:
             if original.format not in ALLOWED:
                 raise ValueError("Unsupported image format")
             image = ImageOps.exif_transpose(original).convert("RGB")
-            image.thumbnail((80, 80))
+            image.thumbnail((96, 96))
+            image = ImageOps.fit(image, (96, 96), method=Image.Resampling.LANCZOS)
             pixels = list(image.getdata())
     except (OSError, ValueError, UnidentifiedImageError, Image.DecompressionBombError) as exc:
         raise ValueError("Invalid JPEG, PNG or WEBP image") from exc
@@ -47,15 +56,42 @@ def image_features(data: bytes) -> tuple[float, ...]:
             bins[index * 4 + min(component // 64, 3)] += 1
         count += 1
     if count == 0:
-        return tuple([0.0] * 12)
-    return tuple(value / count for value in bins)
+        return tuple([0.0] * 22)
+    histogram = [value / count for value in bins]
+    gray = image.convert("L")
+    spatial: list[float] = []
+    for gy in range(3):
+        for gx in range(3):
+            crop = gray.crop((gx * 32, gy * 32, (gx + 1) * 32, (gy + 1) * 32))
+            spatial.append(sum(crop.getdata()) / (32 * 32 * 255.0))
+    edges = 0.0
+    samples = 0
+    px = gray.load()
+    for y in range(1, 95, 2):
+        for x in range(1, 95, 2):
+            edges += abs(px[x, y] - px[x - 1, y]) + abs(px[x, y] - px[x, y - 1])
+            samples += 2
+    return tuple(histogram + spatial + [edges / max(1.0, samples * 255.0)])
 
 
 def feature_similarity(first: tuple[float, ...], second: tuple[float, ...]) -> float:
     if not any(first) or not any(second):
         return 0.0
-    # 0..1 histogram intersection, averaged across R/G/B.
-    return max(0.0, min(1.0, sum(min(a, b) for a, b in zip(first, second)) / 3.0))
+    # Colour remains important for product photos, while shape/spatial content
+    # disambiguates e.g. a red drill from a red bucket.
+    color = sum(min(a, b) for a, b in zip(first[:12], second[:12])) / 3.0
+    tail_a, tail_b = first[12:], second[12:]
+    dot = sum(a * b for a, b in zip(tail_a, tail_b))
+    norm = math.sqrt(sum(a * a for a in tail_a) * sum(b * b for b in tail_b))
+    shape = dot / norm if norm else 0.0
+    return max(0.0, min(1.0, color * 0.72 + shape * 0.28))
+
+
+@lru_cache(maxsize=4096)
+def _catalog_features(path: str, modified_ns: int) -> tuple[float, ...]:
+    """Cache descriptors while still invalidating when an image is replaced."""
+    del modified_ns
+    return image_features(Path(path).read_bytes())
 
 
 def _vision_terms(data: bytes) -> list[str]:
@@ -95,10 +131,12 @@ def _match_text(product: Product, terms: list[str]) -> int:
     ).casefold()
     score = 0
     for phrase in terms:
+        if phrase in haystack:
+            score += 4
         for token in re.findall(r"[A-Za-zА-Яа-яЁё]{4,}", phrase):
             stem = token[:max(4, len(token) - 3)]
             if stem in haystack:
-                score += 1
+                score += 2
     return score
 
 
@@ -142,27 +180,33 @@ async def visual_search(
             continue
         try:
             # The search is grounded in actual catalog image files.
-            similarity = feature_similarity(query_features, image_features(path.read_bytes()))
+            stat = path.stat()
+            similarity = feature_similarity(
+                query_features, _catalog_features(str(path), stat.st_mtime_ns)
+            )
         except (OSError, ValueError):
             continue
         text_score = _match_text(product, terms)
-        if terms and text_score == 0:
-            continue
         if not terms and similarity < 0.12:
             continue
-        score = (text_score * 2.0 + similarity) if terms else similarity
+        # Vision category semantics lead; real catalogue pixels break ties and
+        # keep useful candidates when the model uses an unexpected synonym.
+        semantic = min(1.0, text_score / 8.0)
+        score = (semantic * 0.78 + similarity * 0.22) if terms else similarity
         scored.append((score, similarity, product))
     scored.sort(key=lambda item: (-item[0], -item[1], item[2].name))
 
     matches = []
-    for _, similarity, product in scored[:10]:
+    for score, similarity, product in scored[:12]:
         dto = serialize_product(product, include_details=False)
         matches.append({
             "product_id": product.id,
+            "sku": product.sku,
             "name": product.name,
             "price_byn": float(product.price) if product.price is not None else None,
             "image_url": dto.primary_image_url,
             "visual_color_similarity": round(similarity, 3),
+            "match_score": round(score, 3),
             "match_type": "possible_category_match" if terms else "visual_color_similarity",
             "is_exact_match": False,
         })

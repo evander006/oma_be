@@ -195,6 +195,10 @@ class HomeEquipment(Base, TimestampMixin):
         Integer, ForeignKey("contractor_profiles.id"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(512), nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    brand: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    model: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    serial_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     quantity: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(64), default="installed")
     product_snapshot_json: Mapped[str] = mapped_column(Text, default="{}")
@@ -202,7 +206,13 @@ class HomeEquipment(Base, TimestampMixin):
     installed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    warranty_until: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    room: Mapped[Optional["Room"]] = relationship()  # type: ignore[name-defined]
+    contractor: Mapped[Optional[ContractorProfile]] = relationship()
 
 
 class HomeHistoryEvent(Base, TimestampMixin):
@@ -229,6 +239,9 @@ class HomeHistoryEvent(Base, TimestampMixin):
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    room: Mapped[Optional["Room"]] = relationship()  # type: ignore[name-defined]
+    contractor: Mapped[Optional[ContractorProfile]] = relationship()
 
 
 class JourneyTemplate(Base, TimestampMixin):

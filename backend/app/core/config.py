@@ -1,6 +1,7 @@
 """Application configuration loaded from environment variables."""
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -8,6 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 DATA_ROOT = BACKEND_ROOT / "data"
+IS_VERCEL = bool(os.getenv("VERCEL"))
+WRITABLE_ROOT = Path("/tmp/oma_dom") if IS_VERCEL else DATA_ROOT
 
 
 class Settings(BaseSettings):
@@ -25,16 +28,17 @@ class Settings(BaseSettings):
     # Kept for compatibility; authentication is disabled for the MVP.
     dev_mode: bool = True
 
-    database_url: str = f"sqlite:///{(BACKEND_ROOT / 'data' / 'oma_dom.db').as_posix()}"
+    database_url: str = f"sqlite:///{(WRITABLE_ROOT / 'oma_dom.db').as_posix()}"
 
     cors_origins: str = "*"
 
-    data_dir: Path = DATA_ROOT
+    # Vercel functions can only write to /tmp. Seed assets stay read-only in the package.
+    data_dir: Path = WRITABLE_ROOT
     products_json_path: Path = DATA_ROOT / "products" / "products.json"
     images_dir: Path = DATA_ROOT / "images" / "products"
     models_dir: Path = DATA_ROOT / "models" / "products"
-    cache_dir: Path = DATA_ROOT / "cache" / "pages"
-    uploads_dir: Path = DATA_ROOT / "uploads"
+    cache_dir: Path = WRITABLE_ROOT / "cache" / "pages"
+    uploads_dir: Path = WRITABLE_ROOT / "uploads"
 
     max_upload_bytes: int = 8 * 1024 * 1024
     max_room_photos: int = 5

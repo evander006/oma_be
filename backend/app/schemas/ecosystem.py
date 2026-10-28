@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class PropertyPatch(BaseModel):
@@ -13,6 +13,13 @@ class PropertyPatch(BaseModel):
     address: str | None = Field(default=None, max_length=512)
     property_type: str | None = Field(default=None, max_length=128)
     tenure: Literal["owned", "rented"] | None = None
+
+    @field_validator("name")
+    @classmethod
+    def required_name_cannot_be_cleared(cls, value: str | None) -> str | None:
+        if value is None:
+            raise ValueError("name cannot be null")
+        return value
 
 
 class RoomPatch(BaseModel):
@@ -27,16 +34,28 @@ class RoomPatch(BaseModel):
     floor_material: str | None = Field(default=None, max_length=255)
     ceiling_material: str | None = Field(default=None, max_length=255)
 
+    @field_validator("name")
+    @classmethod
+    def required_name_cannot_be_cleared(cls, value: str | None) -> str | None:
+        if value is None:
+            raise ValueError("name cannot be null")
+        return value
+
 
 class HomeEquipmentCreate(BaseModel):
     room_id: int | None = None
     product_id: str | None = None
     contractor_id: int | None = None
     name: str = Field(min_length=1, max_length=512)
+    category: str | None = Field(default=None, max_length=255)
+    brand: str | None = Field(default=None, max_length=255)
+    model: str | None = Field(default=None, max_length=255)
+    serial_number: str | None = Field(default=None, max_length=255)
     quantity: int = Field(default=1, ge=1, le=1000)
     status: str = Field(default="installed", max_length=64)
     specifications: dict[str, Any] = Field(default_factory=dict)
     installed_at: datetime | None = None
+    warranty_until: datetime | None = None
     notes: str | None = None
 
 

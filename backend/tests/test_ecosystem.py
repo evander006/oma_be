@@ -50,20 +50,46 @@ def test_home_passport_patch_equipment_and_history(client, seeded_products):
             "room_id": room["id"],
             "product_id": seeded_products[0].id,
             "name": "Настольная лампа",
+            "category": "Освещение",
+            "brand": "Тестовый бренд",
+            "model": "L-10",
+            "serial_number": "SN-001",
             "specifications": {"мощность": "10 Вт"},
+            "warranty_until": "2028-10-27T00:00:00Z",
         },
     )
     assert added.status_code == 201, added.text
     assert added.json()["product_snapshot"]["id"] == seeded_products[0].id
+    assert added.json()["category"] == "Освещение"
+    assert added.json()["brand"] == "Тестовый бренд"
+    assert added.json()["model"] == "L-10"
+    assert added.json()["serial_number"] == "SN-001"
+    assert added.json()["room_name"] == "Гостиная"
+    assert added.json()["source"] == "catalog"
+    assert added.json()["warranty_until"].startswith("2028-10-27")
 
     equipment = client.get(
         f"/api/v1/properties/{prop['id']}/equipment", params={"room_id": room["id"]}
     )
     assert equipment.status_code == 200
     assert len(equipment.json()) == 1
+    assert equipment.json()[0]["serial_number"] == "SN-001"
     history = client.get(f"/api/v1/properties/{prop['id']}/history")
     assert history.status_code == 200
     assert history.json()[0]["event_type"] == "equipment_added"
+    assert history.json()[0]["room_name"] == "Гостиная"
+    assert history.json()[0]["product_ids"] == [seeded_products[0].id]
+
+
+def test_required_passport_names_cannot_be_cleared(client):
+    prop, room = _home(client)
+    property_response = client.patch(
+        f"/api/v1/properties/{prop['id']}", json={"name": None}
+    )
+    room_response = client.patch(f"/api/v1/rooms/{room['id']}", json={"name": None})
+
+    assert property_response.status_code == 422
+    assert room_response.status_code == 422
 
 
 def test_contractor_work_order_proposal_completion_flow(client, seeded_products):
@@ -182,6 +208,61 @@ def test_work_order_requires_explicit_consent(client):
         },
     )
     assert response.status_code == 400
+
+
+def test_contractor_scope_and_unaccepted_materials_are_not_installed(
+    client, seeded_products
+):
+    prop, room = _home(client)
+    contractors = client.get("/api/v1/contractors").json()
+    assigned, other = contractors[:2]
+    created = client.post(
+        "/api/v1/work-orders",
+        json={
+            "contractor_id": assigned["id"],
+            "title": "Проверить материалы",
+            "description": "Предложение требует решения клиента",
+            "property_id": prop["id"],
+            "room_id": room["id"],
+            "shared_fields": [],
+            "consent_granted": True,
+        },
+    )
+    assert created.status_code == 201, created.text
+    order_id = created.json()["id"]
+
+    wrong_contractor = client.patch(
+        f"/api/v1/work-orders/{order_id}/status",
+        json={"status": "accepted"},
+        headers={"X-Contractor-Id": str(other["id"])},
+    )
+    assert wrong_contractor.status_code == 403
+
+    headers = {"X-Contractor-Id": str(assigned["id"])}
+    assert client.patch(
+        f"/api/v1/work-orders/{order_id}/status",
+        json={"status": "accepted"},
+        headers=headers,
+    ).status_code == 200
+    proposal = client.post(
+        f"/api/v1/work-orders/{order_id}/proposal",
+        json={"items": [{"product_id": seeded_products[0].id, "quantity": 1}]},
+        headers=headers,
+    )
+    assert proposal.status_code == 200, proposal.text
+    assert client.patch(
+        f"/api/v1/work-orders/{order_id}/status",
+        json={"status": "in_progress"},
+        headers=headers,
+    ).status_code == 200
+    assert client.patch(
+        f"/api/v1/work-orders/{order_id}/status",
+        json={"status": "completed"},
+        headers=headers,
+    ).status_code == 200
+
+    equipment = client.get(f"/api/v1/properties/{prop['id']}/equipment").json()
+    assert not any(item["work_order_id"] == order_id for item in equipment)
 
 
 def test_project_journey_sequence_and_demo_rewards(client):

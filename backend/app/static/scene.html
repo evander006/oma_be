@@ -392,6 +392,125 @@ function roomLabel(text) {
   const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(canvas),transparent:true,depthTest:false}));
   sprite.scale.set(2.2,.42,1);return sprite;
 }
+function normalizeWall(value,fallback) {
+  const text=String(value||"").toLowerCase();
+  if(/лев|left|запад|west/.test(text))return "left";
+  if(/прав|right|восток|east/.test(text))return "right";
+  if(/перед|front|юг|south/.test(text))return "front";
+  if(/зад|back|север|north/.test(text))return "back";
+  return fallback;
+}
+function wallPanel(group,side,alongCenter,alongLength,yCenter,height,wallCoord,material,w,d) {
+  if(height<=.02||alongLength<=.02)return;
+  if(side==="back"||side==="front"){
+    box(group,alongLength,height,.15,alongCenter,yCenter,wallCoord,material);
+  }else{
+    box(group,.15,height,alongLength,wallCoord,yCenter,alongCenter,material);
+  }
+}
+function wallCoordinate(side,w,d) {
+  if(side==="back")return -d/2;
+  if(side==="front")return d/2;
+  if(side==="left")return -w/2;
+  return w/2;
+}
+function wallInward(side) {
+  return side==="back"||side==="left"?1:-1;
+}
+function addWindowDetails(group,side,w,d,windowCenter,windowW,windowY,windowH,wallCoord,inward) {
+  const horizontal=side==="back"||side==="front";
+  const face=wallCoord+inward*.095;
+  const curtainMat=new THREE.MeshStandardMaterial({color:0xc9c6bf,map:fabricTexture,roughness:.95});
+  if(horizontal){
+    box(group,windowW+.12,.07,.22,windowCenter,windowY-windowH/2-.03,face,frameMat);
+    box(group,windowW+.12,.07,.22,windowCenter,windowY+windowH/2+.03,face,frameMat);
+    box(group,.07,windowH,.22,windowCenter-windowW/2,windowY,face,frameMat);
+    box(group,.07,windowH,.22,windowCenter+windowW/2,windowY,face,frameMat);
+    box(group,.035,windowH,.18,windowCenter,windowY,face+inward*.01,frameMat,false);
+    box(group,windowW,.035,.18,windowCenter,windowY,face+inward*.01,frameMat,false);
+    box(group,windowW-.13,windowH-.13,.025,windowCenter,windowY,face+inward*.025,glassMat,false);
+    box(group,windowW+.32,.035,.08,windowCenter,windowY+windowH/2+.12,wallCoord+inward*.14,darkWoodMat,false);
+    for(const sideSign of [-1,1]){
+      for(let fold=0;fold<4;fold++){
+        rounded(group,.052,windowH+.18,.07,windowCenter+sideSign*(windowW/2+.02+fold*.047),windowY,wallCoord+inward*.16,curtainMat,.012);
+      }
+    }
+  }else{
+    box(group,.22,.07,windowW+.12,face,windowY-windowH/2-.03,windowCenter,frameMat);
+    box(group,.22,.07,windowW+.12,face,windowY+windowH/2+.03,windowCenter,frameMat);
+    box(group,.22,windowH,.07,face,windowY,windowCenter-windowW/2,frameMat);
+    box(group,.22,windowH,.07,face,windowY,windowCenter+windowW/2,frameMat);
+    box(group,.18,windowH,.035,face+inward*.01,windowY,windowCenter,frameMat,false);
+    box(group,.18,.035,windowW,face+inward*.01,windowY,windowCenter,frameMat,false);
+    box(group,.025,windowH-.13,windowW-.13,face+inward*.025,windowY,windowCenter,glassMat,false);
+    box(group,.08,.035,windowW+.32,wallCoord+inward*.14,windowY+windowH/2+.12,windowCenter,darkWoodMat,false);
+    for(const sideSign of [-1,1]){
+      for(let fold=0;fold<4;fold++){
+        rounded(group,.07,windowH+.18,.052,wallCoord+inward*.16,windowY,windowCenter+sideSign*(windowW/2+.02+fold*.047),curtainMat,.012);
+      }
+    }
+  }
+}
+function addDoorDetails(group,side,w,d,doorCenter,doorW,doorH,wallCoord,inward) {
+  const horizontal=side==="back"||side==="front";
+  const face=wallCoord+inward*.095;
+  if(horizontal){
+    box(group,.07,doorH,.22,doorCenter-doorW/2,.02+doorH/2,face,frameMat);
+    box(group,.07,doorH,.22,doorCenter+doorW/2,.02+doorH/2,face,frameMat);
+    box(group,doorW+.12,.07,.22,doorCenter,doorH+.035,face,frameMat);
+    box(group,doorW-.12,doorH-.1,.035,doorCenter,doorH/2,face+inward*.04,darkWoodMat,false);
+    sphere(group,.025,.035,.025,doorCenter+doorW*.30,Math.min(.98,doorH*.48),face+inward*.075,metalMat);
+  }else{
+    box(group,.22,doorH,.07,face,doorH/2,doorCenter-doorW/2,frameMat);
+    box(group,.22,doorH,.07,face,doorH/2,doorCenter+doorW/2,frameMat);
+    box(group,.22,.07,doorW+.12,face,doorH+.035,doorCenter,frameMat);
+    box(group,.035,doorH-.1,doorW-.12,face+inward*.04,doorH/2,doorCenter,darkWoodMat,false);
+    sphere(group,.025,.035,.025,face+inward*.075,Math.min(.98,doorH*.48),doorCenter+doorW*.30,metalMat);
+  }
+}
+function addWallWithOpenings(group,side,w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide) {
+  const horizontal=side==="back"||side==="front";
+  const length=horizontal?w:d;
+  const wallCoord=wallCoordinate(side,w,d);
+  const inward=wallInward(side);
+  const hasDoor=doorSide===side,hasWindow=windowSide===side;
+  const cutaway=(side==="front"||side==="right")&&!hasDoor&&!hasWindow;
+  const wallHeight=cutaway?1.02:h;
+  const wallMat=(side==="front"||side==="right")?roomAccentMat:roomWallMat;
+  const same=hasDoor&&hasWindow;
+  const doorW=hasDoor?Math.min(.92,length*.28):0;
+  const doorH=hasDoor?Math.min(2.08,h-.12):0;
+  const windowW=hasWindow?Math.min(same?1.45:1.9,length*(same?.42:.48)):0;
+  const windowH=hasWindow?Math.min(1.18,h-1.15):0;
+  const windowY=hasWindow?Math.min(1.58,h-windowH/2-.12):0;
+  const windowCenter=same?-length*.23:0;
+  const doorCenter=same?length*.23:0;
+  const openings=[];
+  if(hasWindow)openings.push({kind:"window",center:windowCenter,width:windowW,start:windowCenter-windowW/2,end:windowCenter+windowW/2});
+  if(hasDoor)openings.push({kind:"door",center:doorCenter,width:doorW,start:doorCenter-doorW/2,end:doorCenter+doorW/2});
+  openings.sort((a,b)=>a.start-b.start);
+  let cursor=-length/2;
+  for(const opening of openings){
+    const gap=opening.start-cursor;
+    if(gap>.02)wallPanel(group,side,cursor+gap/2,gap,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
+    if(opening.kind==="window"){
+      const bottomH=Math.max(.08,windowY-windowH/2);
+      const topY=windowY+windowH/2;
+      const topH=Math.max(0,wallHeight-topY);
+      wallPanel(group,side,opening.center,windowW,bottomH/2,bottomH,wallCoord,wallMat,w,d);
+      if(topH>.02)wallPanel(group,side,opening.center,windowW,topY+topH/2,topH,wallCoord,wallMat,w,d);
+    }else{
+      const lintelH=Math.max(0,wallHeight-doorH);
+      if(lintelH>.02)wallPanel(group,side,opening.center,doorW,doorH+lintelH/2,lintelH,wallCoord,wallMat,w,d);
+    }
+    cursor=opening.end;
+  }
+  const tail=length/2-cursor;
+  if(tail>.02)wallPanel(group,side,cursor+tail/2,tail,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
+  if(hasWindow)addWindowDetails(group,side,w,d,windowCenter,windowW,windowY,windowH,wallCoord,inward);
+  if(hasDoor)addDoorDetails(group,side,w,d,doorCenter,doorW,doorH,wallCoord,inward);
+  return {cutaway:cutaway,wallHeight:wallHeight};
+}
 function createRoom(info,index) {
   const w=clamp(Number(info.width_m)||3.8,2.7,9);
   const d=clamp(Number(info.length_m)||4.4,2.7,10);
@@ -404,39 +523,17 @@ function createRoom(info,index) {
   const floor=box(group,w,.13,d,0,-.07,0,floorMaterial(info,w,d),false);
   floor.userData.interaction={kind:"room",roomId:String(info.id),name:info.name,confirmed:!!info.dimensions_confirmed};
   clickables.push(floor);
-  // A cutaway architectural shell keeps the interior visible while preserving room volume.
-  const windowW=Math.min(1.9,w*.48),windowH=1.18,windowY=1.58;
-  const backZ=-d/2;
-  const sideW=(w-windowW)/2;
-  box(group,sideW,h,.15,-(windowW+sideW)/2,h/2,backZ,roomWallMat);
-  box(group,sideW,h,.15,(windowW+sideW)/2,h/2,backZ,roomWallMat);
-  const bottomH=windowY-windowH/2,topY=windowY+windowH/2,topH=Math.max(.1,h-topY);
-  box(group,windowW,bottomH,.15,0,bottomH/2,backZ,roomWallMat);
-  box(group,windowW,topH,.15,0,topY+topH/2,backZ,roomWallMat);
-  box(group,windowW+.12,.07,.22,0,windowY-windowH/2-.03,backZ+.02,frameMat);
-  box(group,windowW+.12,.07,.22,0,windowY+windowH/2+.03,backZ+.02,frameMat);
-  box(group,.07,windowH,.22,-windowW/2,windowY,backZ+.02,frameMat);
-  box(group,.07,windowH,.22,windowW/2,windowY,backZ+.02,frameMat);
-  box(group,.035,windowH,.18,0,windowY,backZ+.03,frameMat,false);
-  box(group,windowW,.035,.18,0,windowY,backZ+.03,frameMat,false);
-  box(group,windowW-.13,windowH-.13,.025,0,windowY,backZ+.075,glassMat,false);
-  // Curtains, track and soft folds.
-  box(group,windowW+.32,.035,.08,0,windowY+windowH/2+.12,backZ+.14,darkWoodMat,false);
-  const curtainMat=new THREE.MeshStandardMaterial({color:0xc9c6bf,map:fabricTexture,roughness:.95});
-  for(const side of [-1,1]){
-    for(let fold=0;fold<4;fold++){
-      rounded(group,.052,windowH+.18,.07,side*(windowW/2+.02+fold*.047),windowY,backZ+.16,curtainMat,.012);
-    }
-  }
-  // Full side wall, and lower cutaway walls facing the camera.
-  box(group,.15,h,d,-w/2,h/2,0,roomWallMat);
-  box(group,.15,1.02,d,w/2,.51,0,roomAccentMat);
-  const opening=Math.min(.92,w*.26),segment=(w-opening)/2,frontZ=d/2;
-  box(group,segment,.88,.15,-(opening+segment)/2,.44,frontZ,roomAccentMat);
-  box(group,segment,.88,.15,(opening+segment)/2,.44,frontZ,roomAccentMat);
-  // Wall caps and skirting create architectural edges and contact shadows.
-  box(group,w,.055,.18,0,.92,frontZ,trimMat,false);
-  box(group,.18,.055,d,w/2,1.05,0,trimMat,false);
+  // Room openings follow the local passport; walls facing the camera stay cut away unless they contain a door/window.
+  const doorSide=normalizeWall(info.door_wall,"front");
+  const windowSide=normalizeWall(info.window_wall,"back");
+  const wallBack=addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  const wallLeft=addWallWithOpenings(group,"left",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  const wallRight=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  const wallFront=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  const backZ=-d/2,frontZ=d/2;
+  const frontTop=wallFront.wallHeight,rightTop=wallRight.wallHeight;
+  box(group,w,.055,.18,0,frontTop+.03,frontZ,trimMat,false);
+  box(group,.18,.055,d,w/2,rightTop+.03,0,trimMat,false);
   box(group,w,.10,.055,0,.055,backZ+.10,trimMat,false);
   box(group,.10,.10,d,-w/2+.08,.055,0,trimMat,false);
   box(group,.10,.10,d,w/2-.08,.055,0,trimMat,false);

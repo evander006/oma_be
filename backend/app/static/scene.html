@@ -337,7 +337,7 @@ function floorMaterial(info,w,d) {
   const map=(isWet?tileTexture:woodTexture).clone();
   map.repeat.set(Math.max(1,w/(isWet?.6:1.8)),Math.max(1,d/(isWet?.6:1.8)));
   map.needsUpdate=true;
-  return new THREE.MeshStandardMaterial({map:map,roughness:isWet?.58:.76,metalness:0});
+  return new THREE.MeshStandardMaterial({map:map,roughness:isWet ? 0.58 : 0.76,metalness:0});
 }
 function roomLabel(text) {
   const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;
@@ -705,6 +705,9 @@ function removeFromScene(object) {
   api(path,{method:"DELETE"}).then(()=>{
     const room=item.room;
     room.items=room.items.filter(entry=>entry!==object);
+    const sourceList=item.placementType==="preview" ? (room.info.design_products||[]) : (room.info.products||[]);
+    const sourceIndex=sourceList.findIndex(entry=>String(entry.placement_id)===String(item.placementId));
+    if(sourceIndex>=0)sourceList.splice(sourceIndex,1);
     const index=clickables.indexOf(object);if(index>=0)clickables.splice(index,1);
     room.group.remove(object);
     selectedPlacement=null;panel.style.display="none";

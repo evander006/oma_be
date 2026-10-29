@@ -474,7 +474,7 @@ function addWallWithOpenings(group,side,w,d,h,roomWallMat,roomAccentMat,doorSide
   const wallCoord=wallCoordinate(side,w,d);
   const inward=wallInward(side);
   const hasDoor=doorSide===side,hasWindow=windowSide===side;
-  const cutaway=(side==="front"||side==="right")&&!hasDoor&&!hasWindow;
+  const cutaway=(side==="front"||side==="right")&&!hasWindow;
   const wallHeight=cutaway?1.02:h;
   const wallMat=(side==="front"||side==="right")?roomAccentMat:roomWallMat;
   const same=hasDoor&&hasWindow;

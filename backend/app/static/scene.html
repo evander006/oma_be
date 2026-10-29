@@ -350,13 +350,13 @@ function floorMaterial(info,w,d) {
   const isConcrete=/бетон|microcement|concrete|микроцемент/.test(finish);
   const baseMap=isTile?tileTexture:(isConcrete?plasterTexture:woodTexture);
   const map=baseMap.clone();
-  const scale=isTile?.6:(isConcrete?2:1.8);
+  const scale = isTile ? 0.6 : (isConcrete ? 2 : 1.8);
   map.repeat.set(Math.max(1,w/scale),Math.max(1,d/scale));
   map.needsUpdate=true;
   return new THREE.MeshStandardMaterial({
     map:map,
     color:isConcrete?0xc4c2bc:0xffffff,
-    roughness:isTile?0.58:0.82,
+    roughness: isTile ? 0.58 : 0.82,
     metalness:0
   });
 }

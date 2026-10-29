@@ -217,7 +217,7 @@ let dragState = null;
 let tapState = null;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-const dragPlane = new THREE.Plane(new THREE.Vector3(0,1,0),-.065);
+const dragPlane = new THREE.Plane(new THREE.Vector3(0,1,0),-.005);
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
 async function api(path, options) {
@@ -574,166 +574,405 @@ function centerHome() {
   controls.update();
 }
 function productName(item) { return String(item.name || item.title || "Товар ОМА"); }
-function productCategory(item) { return String(item.category_id || item.subcategory || ""); }
+function productCategory(item) {
+  const rawId=item.category_id;
+  const textualId=typeof rawId==="string" && !/^\d+$/.test(rawId.trim()) ? rawId : "";
+  return [
+    item.category_path,item.category_name,item.subcategory,item.category,
+    textualId,item.product_type,item.type
+  ].filter(v=>v!=null && String(v).trim()!=="").map(v=>String(v).trim()).join(" / ");
+}
+function productText(item) {
+  return [
+    productName(item),productCategory(item),item.description,item.materials,
+    item.colors,item.style_tags,item.room_types
+  ].filter(Boolean).join(" ").toLocaleLowerCase("ru").replace(/ё/g,"е");
+}
+function classifyProduct(item) {
+  const t=productText(item);
+  if(/кресло|armchair|accent chair/.test(t))return "armchair";
+  if(/диван|софа|sofa|couch|sectional/.test(t))return "sofa";
+  if(/матрас|mattress/.test(t))return "mattress";
+  if(/кровать|bed frame|bedstead|bedroom bed|\bbed\b/.test(t))return "bed";
+  if(/тумбочк|nightstand|bedside table/.test(t))return "nightstand";
+  if(/комод|dresser|chest of drawers/.test(t))return "dresser";
+  if(/шкаф|wardrobe|гардероб|пенал|closet/.test(t))return "wardrobe";
+  if(/стеллаж|книжн.*полк|bookcase|bookshelf|shelf|полка/.test(t))return "shelf";
+  if(/кухонн.*гарнитур|кухня|кухонный модуль|кухонн.*шкаф|kitchen cabinet|kitchen set|столешниц|countertop/.test(t))return "kitchen";
+  if(/холодильник|refrigerator|fridge/.test(t))return "fridge";
+  if(/стиральн.*машин|washing machine|washer/.test(t))return "washer";
+  if(/посудомоечн|dishwasher/.test(t))return "dishwasher";
+  if(/духов(ой|ая|ку)|oven|варочн.*панел|cooktop/.test(t))return "oven";
+  if(/ванна|bathtub/.test(t))return "bathtub";
+  if(/душев|душевая система|shower/.test(t))return "shower";
+  if(/раковин|умывальник|sink|vanity/.test(t))return "sink";
+  if(/унитаз|toilet|wc pan/.test(t))return "toilet";
+  if(/зеркал|mirror/.test(t))return "mirror";
+  if(/штор|занавес|curtain|drape/.test(t))return "curtain";
+  if(/двер|door/.test(t))return "door";
+  if(/окн|window/.test(t))return "window";
+  if(/телевизор|\btv\b|монитор|monitor/.test(t))return "tv";
+  if(/торшер|floor lamp|standing lamp/.test(t))return "floor_lamp";
+  if(/светильник|лампа|lamp|люстр|бра\b|sconce/.test(t))return "lamp";
+  if(/ковер|ковёр|rug|carpet/.test(t))return "rug";
+  if(/растени|цветок|кашпо|plant|planter/.test(t))return "plant";
+  if(/стул|chair|табурет|stool|барн.*стул/.test(t))return "chair";
+  if(/столешниц|countertop/.test(t))return "kitchen";
+  if(/письменн.*стол|рабочий стол|desk|обеден.*стол|dining table|журнальн.*стол|coffee table|стол/.test(t))return "table";
+  if(/тумба|cabinet|шкафчик/.test(t))return "cabinet";
+  if(/плитк|tile|ламинат|паркет|обои|wallpaper|краск|paint|цемент|шпаклев|смесител|faucet|строительн.*материал/.test(t))return "material";
+  if(/ваза|статуэт|декор|картина|постер|вагонк|decor|vase|sculpture|art print/.test(t))return "decor";
+  return "generic";
+}
 function getProductDims(item) {
-  const text=(productName(item)+" "+productCategory(item)).toLowerCase();
-  const model=item.model_3d || {};
-  const exact=model.source==="manufacturer_exact";
-  let defaults={w:.8,h:.78,d:.62};
-  if(/диван|sofa|кресло|armchair/.test(text))defaults={w:2.05,h:.82,d:.92};
-  else if(/кровать|bed|матрас|mattress/.test(text))defaults={w:1.65,h:.58,d:2.05};
-  else if(/стол|table|письменн/.test(text))defaults={w:1.2,h:.76,d:.72};
-  else if(/стул|chair|табурет/.test(text))defaults={w:.52,h:.88,d:.52};
-  else if(/шкаф|wardrobe|гардероб|пенал/.test(text))defaults={w:1.1,h:2.05,d:.56};
-  else if(/комод|тумба|cabinet|полка|shelf/.test(text))defaults={w:.85,h:.9,d:.42};
-  else if(/светильник|лампа|lamp|люстр/.test(text))defaults={w:.34,h:1.35,d:.34};
-  else if(/ковер|ковёр|rug|carpet/.test(text))defaults={w:1.7,h:.035,d:1.25};
-  else if(/ванна|bathtub/.test(text))defaults={w:1.7,h:.58,d:.76};
-  else if(/раковина|sink|умывальник/.test(text))defaults={w:.68,h:.84,d:.52};
-  else if(/унитаз|toilet/.test(text))defaults={w:.4,h:.78,d:.68};
-  else if(/кухн|мойка|столешниц/.test(text))defaults={w:1.15,h:.88,d:.62};
-  else if(/холодильник|refrigerator/.test(text))defaults={w:.7,h:1.85,d:.68};
-  else if(/телевизор|tv|монитор/.test(text))defaults={w:1.15,h:.72,d:.12};
-  if(exact){
-    defaults.w=Number(model.width)||defaults.w;
-    defaults.h=Number(model.height)||defaults.h;
-    defaults.d=Number(model.depth)||defaults.d;
-  }else{
-    if(Number(item.width_mm)>0)defaults.w=clamp(Number(item.width_mm)/1000,.12,2.6);
-    if(Number(item.height_mm)>0)defaults.h=clamp(Number(item.height_mm)/1000,.12,2.6);
-    if(Number(item.depth_mm)>0)defaults.d=clamp(Number(item.depth_mm)/1000,.08,2.4);
-  }
-  defaults.w=clamp(defaults.w,.12,2.6);
-  defaults.h=clamp(defaults.h,.12,2.7);
-  defaults.d=clamp(defaults.d,.08,2.4);
-  return defaults;
+  const type=classifyProduct(item);
+  const defaultsByType={
+    sofa:{w:2.15,h:.86,d:.96},armchair:{w:.92,h:.94,d:.88},
+    bed:{w:1.65,h:.62,d:2.08},mattress:{w:1.6,h:.22,d:2.0},
+    table:{w:1.4,h:.76,d:.82},chair:{w:.5,h:.88,d:.52},
+    wardrobe:{w:1.35,h:2.12,d:.62},dresser:{w:1.05,h:.88,d:.48},
+    nightstand:{w:.52,h:.56,d:.42},shelf:{w:.9,h:1.78,d:.36},
+    cabinet:{w:.72,h:.88,d:.46},kitchen:{w:1.35,h:.9,d:.64},
+    lamp:{w:.34,h:.62,d:.34},floor_lamp:{w:.36,h:1.65,d:.36},
+    rug:{w:1.7,h:.025,d:1.25},plant:{w:.42,h:1.12,d:.42},
+    bathtub:{w:1.7,h:.58,d:.76},shower:{w:.95,h:2.0,d:.95},
+    sink:{w:.68,h:.84,d:.52},toilet:{w:.4,h:.78,d:.68},
+    fridge:{w:.7,h:1.85,d:.68},washer:{w:.6,h:.85,d:.62},
+    dishwasher:{w:.6,h:.85,d:.62},oven:{w:.6,h:.6,d:.6},
+    tv:{w:1.15,h:.72,d:.12},mirror:{w:.72,h:1.18,d:.06},
+    curtain:{w:1.2,h:2.15,d:.08},door:{w:.9,h:2.05,d:.08},
+    window:{w:1.2,h:1.2,d:.08},material:{w:.42,h:.36,d:.32},
+    decor:{w:.38,h:.5,d:.3},generic:{w:.5,h:.62,d:.28}
+  };
+  const dims=Object.assign({},defaultsByType[type]||defaultsByType.generic);
+  const model=item.model_3d||{};
+  const metres=item.dimensions_m||{};
+  const width=Number(model.width)||Number(metres.width);
+  const height=Number(model.height)||Number(metres.height);
+  const depth=Number(model.depth)||Number(metres.depth);
+  const widthMm=Number(item.width_mm),heightMm=Number(item.height_mm),depthMm=Number(item.depth_mm);
+  if(width>0)dims.w=width;
+  else if(widthMm>0)dims.w=widthMm/1000;
+  if(height>0)dims.h=height;
+  else if(heightMm>0)dims.h=heightMm/1000;
+  if(depth>0)dims.d=depth;
+  else if(depthMm>0)dims.d=depthMm/1000;
+  dims.w=clamp(dims.w,.12,2.8);
+  dims.h=clamp(dims.h,.025,2.8);
+  dims.d=clamp(dims.d,.04,2.6);
+  return dims;
 }
-function materialForProduct(item, defaultColor) {
-  const text=String(item.colors || "").toLowerCase();
+function materialForProduct(item, defaultColor, finish) {
+  const text=(productText(item)+" "+String(item.color||"")).toLowerCase();
   const palette=[
-    [/бел|white|ivory/ ,0xe8e5dd],[/черн|black/ ,0x34383a],[/сер|gray|grey/ ,0x888c8e],
-    [/син|blue/ ,0x557b98],[/зел|green/ ,0x657d69],[/корич|дуб|орех|wood|brown/ ,0x947354],
-    [/беж|крем|beige/ ,0xc5b59d],[/крас|red/ ,0x9b5148]
+    [/бел|white|ivory|слоновая кость/,0xe8e5dd],
+    [/черн|black|графит/,0x34383a],
+    [/сереб|silver|хром|chrome/,0x9ca3a7],
+    [/сер|gray|grey/,0x888c8e],
+    [/син|blue/,0x557b98],
+    [/зел|green/,0x657d69],
+    [/корич|дуб|орех|wood|brown|oak|walnut/,0x947354],
+    [/беж|крем|beige|cream/,0xc5b59d],
+    [/крас|red|бордов/,0x9b5148],
+    [/золот|gold|латун/,0xb69a5b]
   ];
-  let color=defaultColor || 0xb5b0a7;
+  let color=null;
   for(const entry of palette){if(entry[0].test(text)){color=entry[1];break;}}
-  return new THREE.MeshStandardMaterial({color:color,map:fabricTexture,roughness:.78,metalness:0});
+  if(finish==="wood"){
+    return new THREE.MeshStandardMaterial({
+      color:color===null?0xffffff:color,map:woodTexture,roughness:.67,metalness:0
+    });
+  }
+  if(finish==="metal"){
+    return new THREE.MeshStandardMaterial({
+      color:color===null?0x858b8e:color,metalness:.72,roughness:.27
+    });
+  }
+  if(finish==="ceramic"){
+    return new THREE.MeshStandardMaterial({
+      color:color===null?0xe7e5df:color,roughness:.24,metalness:0
+    });
+  }
+  return new THREE.MeshStandardMaterial({
+    color:color===null?(defaultColor||0xb5b0a7):color,
+    map:fabricTexture,roughness:.88,metalness:0
+  });
 }
-function addLegs(group,w,h,d,material,count) {
-  const n=count||4,legH=Math.max(.12,h*.78),radius=Math.max(.018,Math.min(w,d)*.035);
-  const xs=n===2?[-w*.38,w*.38]:[-w*.4,w*.4];
-  const zs=n===2?[0]:[-d*.38,d*.38];
-  for(const x of xs)for(const z of zs)cylinder(group,radius,radius,legH,x,legH/2,z,material,12);
+function addFurnitureLegs(parent,w,legH,d,material,count) {
+  const n=count||4;
+  const radius=Math.max(.014,Math.min(w,d)*.027);
+  const xs=n===2?[-w*.38,w*.38]:[-w*.40,w*.40];
+  const zs=n===2?[0]:[-d*.40,d*.40];
+  for(const x of xs)for(const z of zs){
+    const leg=new THREE.Mesh(
+      new THREE.CylinderGeometry(radius*.62,radius,Math.max(.04,legH),12),
+      material
+    );
+    leg.position.set(x,Math.max(.04,legH)/2,z);
+    leg.castShadow=true;leg.receiveShadow=true;parent.add(leg);
+  }
+}
+function buildGenericCatalogPreview(group,item,w,h,d,wood,metal) {
+  const plinthH=Math.max(.035,Math.min(.075,h*.11));
+  rounded(group,w*.82,plinthH,d*.82,0,plinthH/2,0,wood,.012);
+  const imageUrl=item.primary_image_url||item.image_url||item.image||"";
+  if(typeof imageUrl==="string" && /^https?:\/\//i.test(imageUrl)){
+    const imageLoader=new THREE.TextureLoader();
+    imageLoader.setCrossOrigin("anonymous");
+    imageLoader.load(imageUrl,texture=>{
+      texture.colorSpace=THREE.SRGBColorSpace;
+      texture.anisotropy=maxAnisotropy;
+      const aspect=texture.image.width/Math.max(1,texture.image.height);
+      const maxW=Math.max(.18,Math.min(w*.78,.72));
+      const maxH=Math.max(.22,Math.min(h*.78,.95));
+      let pw=maxW,ph=pw/aspect;
+      if(ph>maxH){ph=maxH;pw=ph*aspect;}
+      const board=new THREE.Mesh(
+        new THREE.PlaneGeometry(pw,ph),
+        new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,transparent:true})
+      );
+      board.position.set(0,plinthH+ph/2+.025,d*.18);
+      board.castShadow=false;board.receiveShadow=false;group.add(board);
+      box(group,pw+.035,ph+.035,.018,0,plinthH+ph/2+.025,d*.18-.012,trimMat,false);
+      board.renderOrder=2;
+    },undefined,()=>{});
+  }else{
+    const shape=new THREE.Mesh(
+      new THREE.DodecahedronGeometry(Math.max(.12,Math.min(w,h,d)*.42),1),
+      new THREE.MeshStandardMaterial({color:0xb8b3aa,roughness:.58,metalness:.03})
+    );
+    shape.position.set(0,plinthH+Math.min(h*.42,.28),0);
+    shape.castShadow=true;shape.receiveShadow=true;group.add(shape);
+    cylinder(group,.025,.025,.12,0,plinthH+.04,d*.2,metal,12);
+  }
 }
 function buildProceduralFurniture(group,item) {
   const dims=getProductDims(item),w=dims.w,h=dims.h,d=dims.d;
-  const name=(productName(item)+" "+productCategory(item)).toLowerCase();
-  const wood=materialForProduct(item,0x9a7a5c);
-  const upholstery=materialForProduct(item,0x9ca3a5);
+  const type=classifyProduct(item);
+  const wood=materialForProduct(item,0x9a7a5c,"wood");
+  const upholstery=materialForProduct(item,0x9ca3a5,"fabric");
   const dark=new THREE.MeshStandardMaterial({color:0x4e4740,roughness:.58});
-  const white=new THREE.MeshStandardMaterial({color:0xe7e5df,roughness:.36});
-  const metal=new THREE.MeshStandardMaterial({color:0x777d80,metalness:.72,roughness:.25});
-  const topMat=new THREE.MeshStandardMaterial({color:0xd0c1ac,roughness:.36});
-  const panelMat=new THREE.MeshStandardMaterial({color:0xc8c4bc,roughness:.56});
-  const sofa=/диван|sofa|кресло|armchair/.test(name);
-  const bed=/кровать|bed|матрас|mattress/.test(name);
-  const table=/стол|table|письменн/.test(name);
-  const chair=/стул|chair|табурет/.test(name);
-  const wardrobe=/шкаф|wardrobe|гардероб|комод|тумба|cabinet|полка|shelf/.test(name);
-  const lamp=/светильник|лампа|lamp|люстр/.test(name);
-  const rug=/ковер|ковёр|rug|carpet/.test(name);
-  const plant=/растени|plant|цветок|кашпо/.test(name);
-  const bath=/ванна|bathtub/.test(name);
-  const sink=/раковина|sink|умывальник/.test(name);
-  const toilet=/унитаз|toilet/.test(name);
-  const kitchen=/кухн|мойка|столешниц/.test(name);
-  const fridge=/холодильник|refrigerator/.test(name);
-  const tv=/телевизор|tv|монитор/.test(name);
-  if(sofa){
-    const seatH=h*.28,backH=h*.46;
-    rounded(group,w*.92,seatH,d*.83,0,seatH/2,d*.05,upholstery,.055);
-    rounded(group,w*.92,backH,d*.18,0,seatH+backH/2,-d*.34,upholstery,.055);
-    rounded(group,w*.15,h*.52,d*.82,-w*.42,h*.26,d*.04,upholstery,.045);
-    rounded(group,w*.15,h*.52,d*.82,w*.42,h*.26,d*.04,upholstery,.045);
-    for(let i=-1;i<=1;i++)rounded(group,w*.27,seatH*.72,d*.42,i*w*.29,seatH*.83,d*.08,upholstery,.045);
-    addLegs(group,w*.8,.2,d*.65,dark,4);
-  }else if(bed){
-    rounded(group,w,h*.14,d,0,h*.11,0,wood,.025);
-    rounded(group,w*.98,h*.12,d*.9,0,h*.22,d*.015,white,.04);
-    rounded(group,w*.94,h*.1,d*.56,0,h*.31,d*.15,upholstery,.04);
-    rounded(group,w*.98,h*.55,.09,0,h*.28,-d*.46,wood,.025);
-    rounded(group,w*.27,h*.09,d*.18,-w*.24,h*.38,-d*.31,white,.025);
-    rounded(group,w*.27,h*.09,d*.18,w*.24,h*.38,-d*.31,white,.025);
-    addLegs(group,w*.9,.2,d*.9,dark,4);
-  }else if(table){
-    rounded(group,w,h*.075,d,0,h*.91,0,topMat,.025);
-    addLegs(group,w,h,d,wood,4);
-  }else if(chair){
-    rounded(group,w*.9,h*.12,d*.84,0,h*.52,d*.04,wood,.025);
-    rounded(group,w*.88,h*.48,.075,0,h*.76,-d*.36,upholstery,.025);
-    addLegs(group,w*.8,h*.48,d*.72,wood,4);
-  }else if(lamp){
-    cylinder(group,w*.32,w*.34,.055,0,.035,0,dark,24);
-    cylinder(group,w*.035,w*.045,h*.58,0,h*.34,0,metal,16);
-    const shade=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w*.48,.1),h*.25,24,1,true),new THREE.MeshStandardMaterial({color:0xe3d7c2,roughness:.7,side:THREE.DoubleSide}));
-    shade.position.set(0,h*.78,0);shade.castShadow=true;group.add(shade);
-    sphere(group,.06,.06,.06,0,h*.65,0,bulbMat);
-  }else if(rug){
-    rounded(group,w,.025,d,0,.025,0,upholstery,.008);
-    const borderMat=new THREE.MeshStandardMaterial({color:0x8f887d,roughness:.95});
-    rounded(group,w*.96,.008,.035,0,.04,-d*.46,borderMat,.002);
-    rounded(group,w*.96,.008,.035,0,.04,d*.46,borderMat,.002);
-  }else if(plant){
-    cylinder(group,w*.26,w*.34,h*.22,0,h*.11,0,new THREE.MeshStandardMaterial({color:0xb17e58,roughness:.75}),24);
+  const white=materialForProduct(item,0xe7e5df,"ceramic");
+  const metal=materialForProduct(item,0x858b8e,"metal");
+  const topMat=new THREE.MeshStandardMaterial({color:0xd0c1ac,roughness:.31,metalness:0});
+  const panelMat=new THREE.MeshStandardMaterial({color:0xc8c4bc,roughness:.49,metalness:0});
+  const glass=new THREE.MeshPhysicalMaterial({color:0xc7dce0,roughness:.13,metalness:0,transmission:.22,transparent:true,opacity:.62});
+  if(type==="sofa" || type==="armchair"){
+    const isChair=type==="armchair",scale=isChair?.68:1;
+    const sw=w*scale,sd=d*.84,seatY=h*.39,seatH=h*.16,backH=h*.42;
+    rounded(group,sw*.94,h*.19,sd*.91,0,h*.19,0,wood,.035);
+    rounded(group,sw*.9,seatH,sd*.84,0,seatY,0,upholstery,.075);
+    const cushions=isChair?1:3;
+    for(let i=0;i<cushions;i++){
+      const cx=(i-(cushions-1)/2)*sw*.28;
+      rounded(group,sw*(isChair?.72:.29),seatH*.38,sd*.66,cx,seatY+seatH*.48,sd*.015,upholstery,.04);
+      box(group,sw*(isChair?.64:.23),.008,.012,cx,seatY+seatH*.68,sd*.34,dark,false);
+    }
+    rounded(group,sw*.9,backH,sd*.17,0,seatY+backH*.39,-sd*.37,upholstery,.07);
+    for(let i=0;i<cushions;i++){
+      const cx=(i-(cushions-1)/2)*sw*.28;
+      rounded(group,sw*(isChair?.68:.275),backH*.78,sd*.08,cx,seatY+backH*.43,-sd*.27,upholstery,.045);
+    }
+    rounded(group,sw*.13,h*.43,sd*.86,-sw*.435,h*.255,sd*.025,upholstery,.055);
+    rounded(group,sw*.13,h*.43,sd*.86,sw*.435,h*.255,sd*.025,upholstery,.055);
+    addFurnitureLegs(group,sw*.78,h*.105,sd*.66,dark,4);
+    // Soft front piping makes the cushions read as upholstered furniture, not blocks.
+    for(let i=0;i<cushions;i++){
+      const cx=(i-(cushions-1)/2)*sw*.28;
+      cylinder(group,.008,.008,sw*(isChair?.56:.24),cx,seatY+seatH*.2,sd*.42,trimMat,8).rotation.z=Math.PI/2;
+    }
+  }else if(type==="bed" || type==="mattress"){
+    const frameH=type==="mattress"?h*.10:h*.16;
+    if(type==="bed"){
+      rounded(group,w,h*.14,d,0,h*.12,0,wood,.025);
+      rounded(group,w*.98,h*.14,d*.94,0,h*.22,0,dark,.025);
+      rounded(group,w*.98,.045,.075,0,h*.34,-d*.46,wood,.02);
+    }
+    rounded(group,w*.98,frameH,d*.97,0,h*.30,0,white,.065);
+    rounded(group,w*.96,h*.035,d*.92,0,h*.37,0,upholstery,.035);
+    rounded(group,w*.98,h*.07,d*.45,0,h*.405,d*.18,upholstery,.035);
+    if(type==="bed"){
+      rounded(group,w*.96,h*.07,d*.44,0,h*.43,-d*.19,upholstery,.035);
+      rounded(group,w*.27,h*.08,d*.16,-w*.24,h*.49,-d*.34,white,.03);
+      rounded(group,w*.27,h*.08,d*.16,w*.24,h*.49,-d*.34,white,.03);
+      rounded(group,w*.94,h*.018,d*.30,0,h*.46,d*.22,white,.025);
+      addFurnitureLegs(group,w*.88,h*.12,d*.88,dark,4);
+    }
+  }else if(type==="table"){
+    const topY=h*.91,topH=Math.max(.035,h*.055),legH=topY-topH/2;
+    rounded(group,w,topH,d,0,topY,0,topMat,.018);
+    rounded(group,w*.88,h*.085,d*.82,0,topY-topH/2-.045,0,wood,.012);
+    addFurnitureLegs(group,w*.84,legH,d*.84,wood,4);
+    for(const x of [-w*.24,w*.24]){
+      box(group,w*.018,.012,d*.7,x,topY-topH/2-.09,0,metal,false);
+    }
+  }else if(type==="chair"){
+    const seatY=h*.48,seatH=h*.11;
+    rounded(group,w*.88,seatH,d*.83,0,seatY,0,wood,.025);
+    rounded(group,w*.80,seatH*.34,d*.77,0,seatY+seatH*.56,0,upholstery,.03);
+    rounded(group,w*.82,h*.38,.055,0,h*.72,-d*.37,wood,.018);
+    rounded(group,w*.76,h*.30,.035,0,h*.72,-d*.33,upholstery,.012);
+    addFurnitureLegs(group,w*.78,h*.46,d*.74,wood,4);
+  }else if(type==="wardrobe" || type==="dresser" || type==="nightstand" || type==="cabinet"){
+    const isWardrobe=type==="wardrobe",isNightstand=type==="nightstand",isDresser=type==="dresser";
+    const bodyH=h*(isWardrobe?.90:.82),bodyY=bodyH/2+(isWardrobe?.06:.04);
+    rounded(group,w,bodyH,d,0,bodyY,0,wood,.018);
+    rounded(group,w*1.025,.035,d*1.025,0,bodyH+.055,0,topMat,.012);
+    box(group,w*.9,.045,d*.84,0,.07,0,dark,false);
+    if(isWardrobe || type==="cabinet"){
+      const doorCount=w>1.15?3:2,doorW=w*.88/doorCount;
+      for(let i=0;i<doorCount;i++){
+        const x=(i-(doorCount-1)/2)*doorW;
+        box(group,doorW-.012,bodyH*.84,.018,x,bodyY+.015,d*.51,panelMat,false);
+        cylinder(group,.009,.009,.055,x+doorW*.32,bodyY,d*.535,metal,10);
+      }
+      if(isWardrobe){
+        box(group,w*.82,.025,.025,0,bodyH*.72,d*.40,metal,false);
+        for(let i=0;i<4;i++)box(group,w*.68,.008,.01,0,bodyH*(.18+i*.12),d*.515,trimMat,false);
+      }
+    }else{
+      const drawers=isNightstand?2:3;
+      for(let i=0;i<drawers;i++){
+        const y=.16+(i+.5)*(bodyH*.66/drawers);
+        box(group,w*.84,bodyH*.66/drawers-.018,.022,0,y,d*.515,panelMat,false);
+        rounded(group,w*.12,.018,.018,0,y,d*.54,metal,.006);
+      }
+    }
+    addFurnitureLegs(group,w*.78,.09,d*.78,dark,4);
+  }else if(type==="shelf"){
+    const shelfCount=h>1.25?5:3;
+    for(const x of [-w*.46,w*.46])box(group,w*.055,h,d*.9,x,h/2,0,wood,true);
+    for(let i=0;i<=shelfCount;i++){
+      const y=.06+(h-.12)*i/shelfCount;
+      rounded(group,w,.035,d,0,y,0,wood,.008);
+    }
+    for(let i=0;i<shelfCount;i++){
+      const y=.12+i*(h-.2)/shelfCount;
+      const books=2+(i%3);
+      for(let b=0;b<books;b++){
+        const bw=w*.075,bh=(h/shelfCount)*(.45+(b%2)*.15);
+        const bookMat=new THREE.MeshStandardMaterial({color:[0x9b6554,0x526b76,0xb49b72,0x78866a][(i+b)%4],roughness:.78});
+        box(group,bw,bh,d*.42,-w*.32+b*w*.16,y+bh/2,d*.03,bookMat,false);
+      }
+    }
+  }else if(type==="kitchen"){
+    const baseH=h*.68;
+    rounded(group,w,baseH,d,0,baseH/2,0,wood,.018);
+    rounded(group,w*1.035,h*.065,d*1.06,0,baseH+h*.035,0,topMat,.018);
+    const doors=Math.max(2,Math.round(w/.42));
+    for(let i=0;i<doors;i++){
+      const dw=w*.9/doors,x=(i-(doors-1)/2)*dw;
+      box(group,dw-.012,baseH*.72,.018,x,baseH*.5,d*.51,panelMat,false);
+      cylinder(group,.009,.009,.035,x+dw*.33,baseH*.5,d*.535,metal,10);
+    }
+    rounded(group,w*.38,.025,d*.4,-w*.2,baseH+h*.075,0,glass,.015);
+    cylinder(group,.025,.025,.12,w*.28,baseH+h*.12,-d*.18,metal,12);
+  }else if(type==="lamp" || type==="floor_lamp"){
+    const floorLamp=type==="floor_lamp",baseR=floorLamp?w*.31:w*.34;
+    cylinder(group,baseR,baseR*.86,.045,0,.023,0,dark,24);
+    const stemH=floorLamp?h*.68:h*.42;
+    cylinder(group,floorLamp?.022:.016,floorLamp?.028:.022,stemH,0,.045+stemH/2,0,metal,16);
+    const shadeH=h*.24,shadeY=.045+stemH+shadeH/2;
+    const shade=new THREE.Mesh(
+      new THREE.CylinderGeometry(w*.30,w*.46,shadeH,32,1,true),
+      new THREE.MeshStandardMaterial({color:0xe3d7c2,roughness:.82,side:THREE.DoubleSide})
+    );
+    shade.position.set(0,shadeY,0);shade.castShadow=true;group.add(shade);
+    sphere(group,w*.09,w*.09,w*.09,0,shadeY-shadeH*.18,0,bulbMat);
+  }else if(type==="rug"){
+    rounded(group,w,.018,d,0,.018,0,upholstery,.006);
+    const borderMat=new THREE.MeshStandardMaterial({color:0x8f887d,roughness:.96});
+    for(const z of [-d*.46,d*.46])rounded(group,w*.96,.008,.025,0,.03,z,borderMat,.003);
+    for(let i=1;i<8;i++)box(group,w*.92,.003,.006,0,.03,-d*.42+i*d*.12,borderMat,false);
+  }else if(type==="plant"){
+    cylinder(group,w*.26,w*.34,h*.22,0,h*.11,0,new THREE.MeshStandardMaterial({color:0xa77b58,roughness:.82}),24);
     cylinder(group,w*.23,w*.26,.025,0,h*.22,0,dark,24);
-    const greens=[0x5e7c5b,0x78936b,0x3f694c,0x8aa078];
-    for(let i=0;i<9;i++){
-      const a=i*2.399,yy=h*(.4+(i%4)*.12),r=w*(.08+(i%3)*.035);
-      const leaf=sphere(group,r,h*.15,r*.58,Math.cos(a)*w*.22,yy,Math.sin(a)*w*.22,new THREE.MeshStandardMaterial({color:greens[i%greens.length],roughness:.82}));
-      leaf.rotation.z=Math.cos(a)*.45;leaf.rotation.x=Math.sin(a)*.35;
+    const greens=[0x5e7c5b,0x78936b,0x3f694c,0x8aa078,0x456b4c];
+    for(let i=0;i<18;i++){
+      const a=i*2.399,yy=h*(.34+(i%6)*.105),r=w*(.07+(i%3)*.025);
+      const leaf=sphere(group,r,h*(.09+(i%3)*.025),r*.48,Math.cos(a)*w*.2,yy,Math.sin(a)*w*.2,new THREE.MeshStandardMaterial({color:greens[i%greens.length],roughness:.9}));
+      leaf.rotation.z=Math.cos(a)*.62;leaf.rotation.x=Math.sin(a)*.52;
     }
-  }else if(bath){
-    rounded(group,w,h*.35,d,0,h*.18,0,white,.09);
-    rounded(group,w*.84,h*.11,d*.72,0,h*.36,0,new THREE.MeshStandardMaterial({color:0xb8d3d9,roughness:.22}),.12);
-    cylinder(group,.025,.025,.16,w*.3,h*.44,-d*.24,metal,12);
-  }else if(sink){
-    rounded(group,w,h*.55,d,0,h*.28,0,wood,.035);
+  }else if(type==="bathtub"){
+    rounded(group,w,h*.34,d,0,h*.18,0,white,.09);
+    rounded(group,w*.84,h*.10,d*.72,0,h*.35,0,new THREE.MeshPhysicalMaterial({color:0xd8e7e9,roughness:.18,transmission:.15}),.12);
+    cylinder(group,.018,.018,.13,w*.3,h*.43,-d*.24,metal,12);
+  }else if(type==="shower"){
+    rounded(group,w,h*.08,d,0,h*.04,0,white,.035);
+    for(const x of [-w*.48,w*.48])box(group,.025,h*.95,.025,x,h*.51,-d*.45,metal,false);
+    for(const x of [-w*.48,w*.48])box(group,.025,h*.95,.025,x,h*.51,d*.45,metal,false);
+    box(group,.012,h*.88,d*.88,-w*.48,h*.5,0,glass,false);
+    cylinder(group,.018,.018,h*.22,w*.34,h*.78,-d*.3,metal,12);
+    sphere(group,.075,.025,.075,w*.34,h*.9,-d*.3,metal);
+  }else if(type==="sink"){
+    rounded(group,w,h*.55,d,0,h*.28,0,wood,.025);
     rounded(group,w*.8,h*.12,d*.62,0,h*.58,0,white,.055);
-    rounded(group,w*.52,.045,d*.38,0,h*.65,0,new THREE.MeshStandardMaterial({color:0xb7d2d8,roughness:.2}),.035);
-    cylinder(group,.025,.025,h*.2,0,h*.78,-d*.25,metal,12);
-  }else if(toilet){
-    rounded(group,w*.68,h*.2,d*.62,0,h*.1,d*.02,white,.06);
-    rounded(group,w*.72,h*.38,d*.45,0,h*.37,-d*.08,white,.07);
-    rounded(group,w*.72,.05,d*.45,0,h*.58,-d*.08,white,.04);
-  }else if(fridge){
+    rounded(group,w*.52,.045,d*.38,0,h*.65,0,glass,.025);
+    cylinder(group,.018,.018,h*.2,0,h*.78,-d*.25,metal,12);
+    for(const y of [.23,.40])box(group,w*.78,.012,.018,0,h*y,d*.515,panelMat,false);
+  }else if(type==="toilet"){
+    cylinder(group,w*.33,w*.29,h*.13,0,h*.065,0,white,28);
+    rounded(group,w*.7,h*.28,d*.58,0,h*.19,d*.02,white,.11);
+    rounded(group,w*.62,h*.32,d*.42,0,h*.43,-d*.10,white,.08);
+    rounded(group,w*.65,.045,d*.46,0,h*.60,-d*.10,dark,.015);
+  }else if(type==="fridge" || type==="washer" || type==="dishwasher" || type==="oven"){
     rounded(group,w,h,d,0,h/2,0,white,.025);
-    box(group,w*.84,.018,.018,0,h*.52,d*.51,metal,false);
-    rounded(group,.025,h*.23,.035,w*.32,h*.68,d*.52,metal,.008);
-  }else if(tv){
-    rounded(group,w,h,.07,0,h/2,0,dark,.025);
-    box(group,w*.94,h*.91,.012,0,h/2,.04,new THREE.MeshStandardMaterial({color:0x192a33,metalness:.12,roughness:.16}),false);
-    rounded(group,w*.16,.035,.13,0,.04,.02,metal,.01);
-  }else if(kitchen){
-    rounded(group,w,h*.72,d,0,h*.36,0,wood,.025);
-    rounded(group,w*1.02,h*.07,d*1.04,0,h*.75,0,topMat,.025);
-    for(let i=0;i<3;i++){
-      box(group,w*.94,.012,.012,0,h*(.19+i*.18),d*.51,metal,false);
+    const frontZ=d*.51;
+    if(type==="fridge"){
+      box(group,w*.91,.018,.015,0,h*.68,frontZ,metal,false);
+      rounded(group,.022,h*.22,.035,w*.34,h*.82,frontZ+.015,metal,.008);
+      rounded(group,.022,h*.20,.035,w*.34,h*.42,frontZ+.015,metal,.008);
+    }else if(type==="washer"){
+      cylinder(group,w*.28,w*.28,.025,0,h*.48,frontZ+.015,dark,32).rotation.x=Math.PI/2;
+      cylinder(group,w*.22,w*.22,.028,0,h*.48,frontZ+.03,glass,32).rotation.x=Math.PI/2;
+      for(let i=0;i<3;i++)cylinder(group,.018,.018,.02,-w*.30+i*w*.18,h*.86,frontZ+.012,metal,12);
+    }else if(type==="dishwasher"){
+      box(group,w*.85,h*.14,.018,0,h*.88,frontZ+.012,panelMat,false);
+      cylinder(group,.018,.018,.02,w*.28,h*.88,frontZ+.025,metal,12);
+    }else{
+      box(group,w*.85,h*.12,.018,0,h*.86,frontZ+.012,dark,false);
+      box(group,w*.78,h*.53,.02,0,h*.46,frontZ+.014,glass,false);
+      for(let i=0;i<4;i++)cylinder(group,.016,.016,.02,-w*.3+i*w*.2,h*.89,frontZ+.024,metal,12);
     }
-    rounded(group,w*.44,.025,d*.46,0,h*.8,0,new THREE.MeshStandardMaterial({color:0xb8d5d9,roughness:.18}),.02);
-  }else if(wardrobe){
-    rounded(group,w,h,d,0,h/2,0,wood,.025);
-    box(group,.012,h*.87,.012,0,h*.51,d*.51,dark,false);
-    box(group,w*.44,h*.82,.018,-w*.23,h*.5,d*.52,panelMat,false);
-    box(group,w*.44,h*.82,.018,w*.23,h*.5,d*.52,panelMat,false);
-    for(const x of [-w*.05,w*.05])cylinder(group,.012,.012,.08,x,h*.53,d*.55,metal,10);
-    addLegs(group,w*.82,.14,d*.82,dark,4);
+  }else if(type==="tv"){
+    rounded(group,w,h,.055,0,h/2,0,dark,.015);
+    box(group,w*.94,h*.91,.012,0,h/2,.035,new THREE.MeshStandardMaterial({color:0x192a33,metalness:.12,roughness:.16}),false);
+    rounded(group,w*.16,.025,.11,0,.035,.025,metal,.008);
+  }else if(type==="mirror"){
+    rounded(group,w,h,.055,0,h/2,0,wood,.015);
+    box(group,w*.9,h*.92,.012,0,h/2,.032,new THREE.MeshPhysicalMaterial({color:0xc9d8da,metalness:.82,roughness:.12}),false);
+  }else if(type==="curtain"){
+    cylinder(group,.018,.018,w,0,h*.94,0,metal,16).rotation.z=Math.PI/2;
+    for(let i=0;i<12;i++){
+      const x=-w*.45+i*w*.082;
+      rounded(group,w*.075,h*.88,.035,x,h*.49,0,upholstery,.012);
+    }
+  }else if(type==="door" || type==="window"){
+    const isDoor=type==="door";
+    const panelH=isDoor?h*.92:h*.75,panelW=isDoor?w*.92:w*.88;
+    rounded(group,panelW,panelH,.055,0,panelH/2+.025,0,wood,.012);
+    if(!isDoor){
+      box(group,panelW*.9,panelH*.9,.012,0,panelH/2+.025,.032,glass,false);
+      box(group,.025,panelH*.9,.018,0,panelH/2+.025,.045,frameMat,false);
+      box(group,panelW*.9,.025,.018,0,panelH/2+.025,.045,frameMat,false);
+    }else{
+      box(group,.018,panelH*.88,.018,0,panelH/2+.025,.032,trimMat,false);
+      cylinder(group,.018,.018,.04,w*.32,panelH*.48,.055,metal,12);
+    }
+  }else if(type==="kitchen"){
+    rounded(group,w,h*.72,d,0,h*.36,0,wood,.018);
+    rounded(group,w*1.02,h*.07,d*1.04,0,h*.75,0,topMat,.018);
+  }else if(type==="material"){
+    // Building materials are represented as stacked samples/packages, never as furniture.
+    const count=3;
+    for(let i=0;i<count;i++)rounded(group,w*(.9-i*.08),h*.12,d*(.9-i*.06),0,h*(.08+i*.13),0,[white,topMat,wood][i],.01);
+    box(group,w*.72,h*.025,.012,0,h*.45,d*.47,trimMat,false);
+  }else if(type==="decor"){
+    cylinder(group,w*.22,w*.31,h*.44,0,h*.22,0,wood,24);
+    const neck=cylinder(group,w*.13,w*.22,h*.18,0,h*.52,0,white,24);
+    sphere(group,w*.18,h*.12,w*.18,0,h*.65,0,white);
   }else{
-    rounded(group,w,h*.82,d,0,h*.41,0,wood,.025);
-    rounded(group,w*.92,h*.1,d*.93,0,h*.88,0,topMat,.018);
-    box(group,w*.42,h*.62,.018,-w*.23,h*.45,d*.51,panelMat,false);
-    box(group,w*.42,h*.62,.018,w*.23,h*.45,d*.51,panelMat,false);
-    for(const x of [-w*.05,w*.05])sphere(group,.018,.018,.018,x,h*.46,d*.54,metal);
-    addLegs(group,w*.82,.16,d*.82,dark,4);
+    buildGenericCatalogPreview(group,item,w,h,d,wood,metal);
   }
 }
 function makeProductObject(room,item,placement) {
@@ -741,17 +980,28 @@ function makeProductObject(room,item,placement) {
     id:item.product_id || item.id,
     name:productName(item),
     category_id:productCategory(item),
+    category_path:item.category_path || productCategory(item),
+    category_name:item.category_name || item.category || "",
+    subcategory:item.subcategory || "",
+    description:item.description || "",
+    materials:item.materials || "",
+    colors:item.colors || "",
+    style_tags:item.style_tags || "",
+    room_types:item.room_types || "",
+    primary_image_url:item.primary_image_url || item.image_url || item.image || "",
     price:item.price,
     currency:item.currency || "BYN",
     width_mm:item.width_mm,
     height_mm:item.height_mm,
     depth_mm:item.depth_mm,
+    dimensions_m:item.dimensions_m || null,
     model_3d:item.model_3d || {
       source:item.model_source || null,
       url:item.model_url || null,
       width:item.dimensions_m && item.dimensions_m.width,
       height:item.dimensions_m && item.dimensions_m.height,
-      depth:item.dimensions_m && item.dimensions_m.depth
+      depth:item.dimensions_m && item.dimensions_m.depth,
+      limitations:item.model_limitations || null
     }
   };
   const group=new THREE.Group();
@@ -760,7 +1010,7 @@ function makeProductObject(room,item,placement) {
   let px=position.x==null?NaN:Number(position.x),pz=position.z==null?NaN:Number(position.z);
   if(!Number.isFinite(px))px=((idx%3)-1)*.85;
   if(!Number.isFinite(pz))pz=(Math.floor(idx/3)-.5)*.8;
-  group.position.set(clamp(px,-room.w/2+.45,room.w/2-.45),.065,clamp(pz,-room.d/2+.45,room.d/2-.45));
+  group.position.set(clamp(px,-room.w/2+.45,room.w/2-.45),.005,clamp(pz,-room.d/2+.45,room.d/2-.45));
   group.rotation.y=Number(position.rotation_y)||0;
   group.userData.interaction={
     kind:"product",
@@ -829,7 +1079,7 @@ function raycast(event) {
 async function savePosition(object) {
   const item=object.userData.interaction;
   if(!item || item.kind!=="product" || item.placementId==null)return;
-  const x=Number(object.position.x.toFixed(4)),y=.065;
+  const x=Number(object.position.x.toFixed(4)),y=.005;
   const z=Number(object.position.z.toFixed(4)),rotation=Number(object.rotation.y.toFixed(4));
   try{
     if(hasNativeBridge()){
@@ -969,13 +1219,13 @@ async function addCatalogProduct(product,button) {
   const pz=clamp((Math.floor(idx/3)-.5)*.78,-room.d/2+.45,room.d/2-.45);
   try{
     const placement=hasNativeBridge()
-      ? nativeResult(window.OmaRoomBridge.addPlacement(String(room.id),String(product.id),px,.065,pz,0))
+      ? nativeResult(window.OmaRoomBridge.addPlacement(String(room.id),String(product.id),px,.005,pz,0))
       : await api("/api/v1/rooms/"+encodeURIComponent(room.id)+"/design-placements",{
-          method:"POST",body:JSON.stringify({product_id:String(product.id),pos_x:px,pos_y:.065,pos_z:pz,rotation_y:0})
+          method:"POST",body:JSON.stringify({product_id:String(product.id),pos_x:px,pos_y:.005,pos_z:pz,rotation_y:0})
         });
     const sceneItem=Object.assign({},product,{
       product_id:String(product.id),name:productName(product),
-      position:{x:px,y:.065,z:pz,rotation_y:0},
+      position:{x:px,y:.005,z:pz,rotation_y:0},
       is_preview:placement.placement_type!=="owned",
       is_demo:!!placement.is_demo,
       placement_type:placement.placement_type,

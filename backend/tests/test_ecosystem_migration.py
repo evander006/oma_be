@@ -36,7 +36,12 @@ def test_fresh_database_upgrades_to_ecosystem_head(tmp_path: Path) -> None:
     )
     with engine.connect() as conn:
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
-    assert version == "0002_digital_home_ecosystem"
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    alembic_config = Config(str(BACKEND_DIR / "alembic.ini"))
+    expected_head = ScriptDirectory.from_config(alembic_config).get_current_head()
+    assert version == expected_head
     engine.dispose()
 
     again = subprocess.run(

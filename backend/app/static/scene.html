@@ -198,6 +198,11 @@ let selectedRoom = null;
 let selectedPlacement = null;
 let allBounds = new THREE.Box3();
 let catalogLoaded = false;
+let catalogPage = 1;
+let catalogTotal = 0;
+let catalogQuery = "";
+let catalogRequestSeq = 0;
+let catalogSearchTimer = null;
 let toastTimeout = null;
 let dragState = null;
 let lastPointer = {x:0,y:0};
@@ -730,48 +735,83 @@ function renderCatalog() {
     const haystack=(productName(item)+" "+productCategory(item)+" "+String(item.brand||"")).toLowerCase();
     return !q || haystack.includes(q);
   });
-  catalogCount.textContent=list.length+" товаров";
+  catalogCount.textContent=(catalogQuery ? "Найдено: " : "В каталоге: ")+catalogTotal.toLocaleString("ru-RU");
   catalogList.replaceChildren();
   if(!list.length){
-    const empty=document.createElement("div");empty.className="empty-state";empty.textContent="Ничего не найдено. Попробуйте другое название.";catalogList.appendChild(empty);return;
+    const empty=document.createElement("div");empty.className="empty-state";empty.textContent="Ничего не найдено. Попробуйте другое название.";catalogList.appendChild(empty);
+  }else{
+    list.forEach(item=>{
+      const card=document.createElement("article");card.className="catalog-item";
+      const imageUrl=item.primary_image_url || (item.images && item.images[0] && item.images[0].url);
+      if(imageUrl){
+        const image=document.createElement("img");image.className="catalog-image";image.loading="lazy";image.alt="";image.src=new URL(imageUrl,window.location.origin).href;
+        image.onerror=()=>{const placeholder=document.createElement("div");placeholder.className="catalog-image empty";placeholder.textContent="◇";image.replaceWith(placeholder);};
+        card.appendChild(image);
+      }else{
+        const placeholder=document.createElement("div");placeholder.className="catalog-image empty";placeholder.textContent="◇";card.appendChild(placeholder);
+      }
+      const info=document.createElement("div");info.className="catalog-item-info";
+      const name=document.createElement("div");name.className="catalog-item-name";name.textContent=productName(item);info.appendChild(name);
+      const price=document.createElement("div");price.className="catalog-item-meta";
+      price.textContent=item.price==null?"Цена не указана":(Number(item.price).toLocaleString("ru-RU",{maximumFractionDigits:2})+" "+(item.currency||"BYN"));
+      info.appendChild(price);
+      const add=document.createElement("button");add.className="primary";add.type="button";add.textContent="Добавить в комнату";
+      add.addEventListener("click",()=>addCatalogProduct(item,add));info.appendChild(add);
+      card.appendChild(info);catalogList.appendChild(card);
+    });
   }
-  list.slice(0,100).forEach(item=>{
-    const card=document.createElement("article");card.className="catalog-item";
-    const imageUrl=item.primary_image_url || (item.images && item.images[0] && item.images[0].url);
-    if(imageUrl){
-      const image=document.createElement("img");image.className="catalog-image";image.loading="lazy";image.alt="";image.src=new URL(imageUrl,window.location.origin).href;
-      image.onerror=()=>{const placeholder=document.createElement("div");placeholder.className="catalog-image empty";placeholder.textContent="◇";image.replaceWith(placeholder);};
-      card.appendChild(image);
-    }else{
-      const placeholder=document.createElement("div");placeholder.className="catalog-image empty";placeholder.textContent="◇";card.appendChild(placeholder);
-    }
-    const info=document.createElement("div");info.className="catalog-item-info";
-    const name=document.createElement("div");name.className="catalog-item-name";name.textContent=productName(item);info.appendChild(name);
-    const price=document.createElement("div");price.className="catalog-item-meta";
-    price.textContent=item.price==null?"Цена не указана":(Number(item.price).toLocaleString("ru-RU",{maximumFractionDigits:2})+" "+(item.currency||"BYN"));
-    info.appendChild(price);
-    const add=document.createElement("button");add.className="primary";add.type="button";add.textContent="Добавить в комнату";
-    add.addEventListener("click",()=>addCatalogProduct(item,add));info.appendChild(add);
-    card.appendChild(info);catalogList.appendChild(card);
-  });
+  if(catalogItems.length<catalogTotal){
+    const more=document.createElement("button");more.type="button";more.textContent="Показать ещё товары";more.style.margin="6px 4px 10px";
+    more.addEventListener("click",loadMoreCatalog);catalogList.appendChild(more);
+  }
 }
 async function loadCatalog(force) {
-  if(catalogLoaded&&!force){renderCatalog();return;}
+  const query=catalogSearch.value.trim();
+  if(catalogLoaded&&!force&&query===catalogQuery){renderCatalog();return;}
+  const requestId=++catalogRequestSeq;
+  catalogQuery=query;catalogPage=1;catalogTotal=0;
   catalogCount.textContent="Загружаем…";
   catalogList.innerHTML='<div class="empty-state">Загружаем товары ОМА…</div>';
   try{
-    const response=await api("/api/v1/products?page=1&page_size=100&sort=name");
+    const queryPart=query ? "&q="+encodeURIComponent(query) : "";
+    const response=await api("/api/v1/products?page=1&page_size=100&sort=name"+queryPart);
+    if(requestId!==catalogRequestSeq)return;
     catalogItems=Array.isArray(response.items)?response.items:[];
+    catalogTotal=Number(response.total)||catalogItems.length;
     catalogLoaded=true;renderCatalog();
   }catch(error){
+    if(requestId!==catalogRequestSeq)return;
     catalogCount.textContent="Ошибка загрузки";
     catalogList.replaceChildren();
     const empty=document.createElement("div");empty.className="empty-state";
     empty.textContent="Не удалось загрузить каталог: "+error.message;catalogList.appendChild(empty);
   }
 }
+async function loadMoreCatalog() {
+  const query=catalogSearch.value.trim();
+  if(query!==catalogQuery){await loadCatalog(true);return;}
+  if(catalogItems.length>=catalogTotal)return;
+  const requestId=++catalogRequestSeq;
+  const nextPage=catalogPage+1;
+  catalogCount.textContent="Загружаем страницу "+nextPage+"…";
+  try{
+    const queryPart=query ? "&q="+encodeURIComponent(query) : "";
+    const response=await api("/api/v1/products?page="+nextPage+"&page_size=100&sort=name"+queryPart);
+    if(requestId!==catalogRequestSeq||query!==catalogSearch.value.trim())return;
+    const incoming=Array.isArray(response.items)?response.items:[];
+    const seen=new Set(catalogItems.map(item=>String(item.id)));
+    catalogItems=catalogItems.concat(incoming.filter(item=>!seen.has(String(item.id))));
+    catalogPage=nextPage;catalogTotal=Number(response.total)||catalogItems.length;
+    renderCatalog();
+  }catch(error){showToast("Не удалось загрузить товары: "+error.message);}
+}
 async function addCatalogProduct(product,button) {
   if(!selectedRoom){showToast("Сначала выберите комнату");return;}
+  const existing=selectedRoom.items.find(entry=>{
+    const meta=entry.userData.interaction;
+    return meta && meta.product && String(meta.product.id)===String(product.id);
+  });
+  if(existing){selectPlacement(existing);showToast("Этот товар уже добавлен в комнату");return;}
   button.disabled=true;button.textContent="Добавляем…";
   const room=selectedRoom;
   const idx=room.items.length;
@@ -849,7 +889,11 @@ document.getElementById("catalog-toggle").addEventListener("click",()=>{
 });
 document.getElementById("catalog-close").addEventListener("click",()=>catalogPanel.classList.remove("open"));
 document.getElementById("catalog-reload").addEventListener("click",()=>loadCatalog(true));
-catalogSearch.addEventListener("input",renderCatalog);
+catalogSearch.addEventListener("input",()=>{
+  renderCatalog();
+  if(catalogSearchTimer)clearTimeout(catalogSearchTimer);
+  catalogSearchTimer=setTimeout(()=>loadCatalog(true),320);
+});
 roomSelect.addEventListener("change",focusSelectedRoom);
 document.getElementById("close").addEventListener("click",()=>{panel.style.display="none";selectedPlacement=null;});
 document.getElementById("rotate").addEventListener("click",()=>{

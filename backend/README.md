@@ -100,7 +100,7 @@ Optional live check (manual): set `OPENROUTER_API_KEY` and call `POST /api/v1/ai
 
 - `GET /health`
 - Catalog: `/products`, `/products/{id}`, `/categories`
-- Properties/rooms/photos; 3D scene: `/properties/{property_id}/scene`, `/scene/view/{property_id}`.
+- Properties/rooms/photos; 3D scene: `/properties/{property_id}/scene`, `/scene/view/{property_id}`; generic native editor shell: `/scene/editor`.
 - Room placement actions: `/rooms/{room_id}/placements` and `/rooms/{room_id}/design-placements` (POST/PATCH/DELETE; ownership is kept separate from design previews).
 - AI: `/ai/chat`, `/ai/analyze-room`, `/ai/recommendations`, `/ai/design-sessions`, `.../generate`, `/ai/capabilities`
 - Renovation: `/renovation/projects`, `/renovation/requests`, `/renovation/estimates`, `/renovation/services`

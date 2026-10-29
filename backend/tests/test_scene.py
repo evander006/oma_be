@@ -136,3 +136,25 @@ def test_ordered_product_added_from_catalog_stays_in_owned_layer(client, seeded_
     scene = client.get(f"/api/v1/properties/{prop_id}/scene").json()
     assert [item["product_id"] for item in scene["rooms"][0]["products"]] == [product_id]
     assert scene["rooms"][0]["design_products"] == []
+
+
+def test_same_catalog_item_can_be_placed_more_than_once(client, seeded_products):
+    prop_id, room_id = _new_home(client)
+    product_id = seeded_products[2].id
+
+    first = client.post(
+        f"/api/v1/rooms/{room_id}/design-placements",
+        json={"product_id": product_id, "pos_x": -0.8, "pos_y": 0.06, "pos_z": 0.2},
+    )
+    second = client.post(
+        f"/api/v1/rooms/{room_id}/design-placements",
+        json={"product_id": product_id, "pos_x": 0.8, "pos_y": 0.06, "pos_z": 0.2},
+    )
+    assert first.status_code == 200, first.text
+    assert second.status_code == 200, second.text
+    assert first.json()["id"] != second.json()["id"]
+
+    scene = client.get(f"/api/v1/properties/{prop_id}/scene").json()
+    previews = scene["rooms"][0]["design_products"]
+    assert len(previews) == 2
+    assert all(item["product_id"] == product_id for item in previews)

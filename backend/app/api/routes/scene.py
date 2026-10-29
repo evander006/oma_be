@@ -154,6 +154,15 @@ def property_scene(
     }
 
 
+@router.get("/scene/editor", response_class=HTMLResponse, include_in_schema=False)
+def scene_editor() -> HTMLResponse:
+    """Serve the editor shell for native apps that provide their own local room/catalog bridge."""
+    html = (Path(__file__).resolve().parents[2] / "static" / "scene.html").read_text(
+        encoding="utf-8"
+    )
+    return HTMLResponse(html, headers={"Cache-Control": "no-store"})
+
+
 @router.get("/scene/view/{property_id}", response_class=HTMLResponse, include_in_schema=False)
 def scene_view(
     property_id: int,

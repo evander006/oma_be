@@ -1,11 +1,12 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_room_owner
 from app.core.config import get_settings
-from app.db.models import Property, Room, RoomPhoto, RoomPlacement, User
+from app.db.models import Product, Property, Room, RoomDesignPlacement, RoomPhoto, RoomPlacement, User
 from app.services.purchase_eligibility import eligible_order_products
 from app.db.session import get_db
 from app.schemas import (
@@ -21,6 +22,22 @@ from app.services.image_service import save_room_photo
 from app.services.recommendation_service import recommend_from_room
 
 router = APIRouter(tags=["rooms"])
+
+
+class PlacementCreate(BaseModel):
+    product_id: str = Field(min_length=1, max_length=64)
+    pos_x: float = Field(default=0.0, ge=-50.0, le=50.0)
+    pos_y: float = Field(default=0.06, ge=0.0, le=10.0)
+    pos_z: float = Field(default=0.0, ge=-50.0, le=50.0)
+    rotation_y: float = Field(default=0.0, ge=-1000.0, le=1000.0)
+
+
+class PlacementPosition(BaseModel):
+    pos_x: float = Field(ge=-50.0, le=50.0)
+    pos_y: float = Field(default=0.06, ge=0.0, le=10.0)
+    pos_z: float = Field(ge=-50.0, le=50.0)
+    rotation_y: float = Field(default=0.0, ge=-1000.0, le=1000.0)
+
 
 
 @router.post("/properties", response_model=PropertyOut)
@@ -259,3 +276,197 @@ def add_placement(
         "product_id": product_id,
         "is_demo": eligible[product_id],
     }
+
+
+
+@router.patch("/rooms/{room_id}/placements/{placement_id}")
+def update_owned_placement(
+    room_id: int,
+    placement_id: int,
+    payload: PlacementPosition,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    room = require_room_owner(db, room_id, user)
+    placement = (
+        db.query(RoomPlacement)
+        .filter(RoomPlacement.id == placement_id, RoomPlacement.room_id == room.id)
+        .first()
+    )
+    if not placement:
+        raise HTTPException(status_code=404, detail="Placement not found")
+    placement.pos_x = payload.pos_x
+    placement.pos_y = payload.pos_y
+    placement.pos_z = payload.pos_z
+    placement.rotation_y = payload.rotation_y
+    db.commit()
+    db.refresh(placement)
+    return {
+        "id": placement.id,
+        "room_id": room.id,
+        "product_id": placement.product_id,
+        "placement_type": "owned",
+        "is_demo": eligible_order_products(db, user).get(placement.product_id, False),
+        "position": {
+            "x": float(placement.pos_x or 0),
+            "y": float(placement.pos_y or 0.06),
+            "z": float(placement.pos_z or 0),
+            "rotation_y": float(placement.rotation_y or 0),
+        },
+    }
+
+
+@router.delete("/rooms/{room_id}/placements/{placement_id}")
+def delete_owned_placement(
+    room_id: int,
+    placement_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    room = require_room_owner(db, room_id, user)
+    placement = (
+        db.query(RoomPlacement)
+        .filter(RoomPlacement.id == placement_id, RoomPlacement.room_id == room.id)
+        .first()
+    )
+    if not placement:
+        raise HTTPException(status_code=404, detail="Placement not found")
+    db.delete(placement)
+    db.commit()
+    return {"deleted": True, "id": placement_id, "placement_type": "owned"}
+
+
+@router.post("/rooms/{room_id}/design-placements")
+def add_design_placement(
+    room_id: int,
+    payload: PlacementCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    """Add a catalog item to a room draft without claiming it has been purchased."""
+    room = require_room_owner(db, room_id, user)
+    product = db.get(Product, payload.product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # If this is already an eligible OMA purchase, keep it in the owned layer.
+    eligible = eligible_order_products(db, user)
+    if payload.product_id in eligible:
+        placement = (
+            db.query(RoomPlacement)
+            .filter(
+                RoomPlacement.room_id == room.id,
+                RoomPlacement.product_id == payload.product_id,
+            )
+            .first()
+        )
+        if not placement:
+            placement = RoomPlacement(room_id=room.id, product_id=payload.product_id)
+            db.add(placement)
+        placement.pos_x = payload.pos_x
+        placement.pos_y = payload.pos_y
+        placement.pos_z = payload.pos_z
+        placement.rotation_y = payload.rotation_y
+        db.commit()
+        db.refresh(placement)
+        return {
+            "id": placement.id,
+            "room_id": room.id,
+            "product_id": product.id,
+            "name": product.name,
+            "placement_type": "owned",
+            "is_demo": eligible[payload.product_id],
+        }
+
+    placement = (
+        db.query(RoomDesignPlacement)
+        .filter(
+            RoomDesignPlacement.room_id == room.id,
+            RoomDesignPlacement.product_id == payload.product_id,
+        )
+        .first()
+    )
+    if not placement:
+        placement = RoomDesignPlacement(
+            room_id=room.id,
+            product_id=payload.product_id,
+        )
+        db.add(placement)
+    placement.pos_x = payload.pos_x
+    placement.pos_y = payload.pos_y
+    placement.pos_z = payload.pos_z
+    placement.rotation_y = payload.rotation_y
+    db.commit()
+    db.refresh(placement)
+    return {
+        "id": placement.id,
+        "room_id": room.id,
+        "product_id": product.id,
+        "name": product.name,
+        "placement_type": "preview",
+        "is_preview": True,
+        "purchase_status": "design_preview",
+    }
+
+
+@router.patch("/rooms/{room_id}/design-placements/{placement_id}")
+def update_design_placement(
+    room_id: int,
+    placement_id: int,
+    payload: PlacementPosition,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    room = require_room_owner(db, room_id, user)
+    placement = (
+        db.query(RoomDesignPlacement)
+        .filter(
+            RoomDesignPlacement.id == placement_id,
+            RoomDesignPlacement.room_id == room.id,
+        )
+        .first()
+    )
+    if not placement:
+        raise HTTPException(status_code=404, detail="Design placement not found")
+    placement.pos_x = payload.pos_x
+    placement.pos_y = payload.pos_y
+    placement.pos_z = payload.pos_z
+    placement.rotation_y = payload.rotation_y
+    db.commit()
+    db.refresh(placement)
+    return {
+        "id": placement.id,
+        "room_id": room.id,
+        "product_id": placement.product_id,
+        "placement_type": "preview",
+        "is_preview": True,
+        "position": {
+            "x": float(placement.pos_x or 0),
+            "y": float(placement.pos_y or 0.06),
+            "z": float(placement.pos_z or 0),
+            "rotation_y": float(placement.rotation_y or 0),
+        },
+    }
+
+
+@router.delete("/rooms/{room_id}/design-placements/{placement_id}")
+def delete_design_placement(
+    room_id: int,
+    placement_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    room = require_room_owner(db, room_id, user)
+    placement = (
+        db.query(RoomDesignPlacement)
+        .filter(
+            RoomDesignPlacement.id == placement_id,
+            RoomDesignPlacement.room_id == room.id,
+        )
+        .first()
+    )
+    if not placement:
+        raise HTTPException(status_code=404, detail="Design placement not found")
+    db.delete(placement)
+    db.commit()
+    return {"deleted": True, "id": placement_id, "placement_type": "preview"}

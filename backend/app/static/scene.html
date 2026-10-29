@@ -558,7 +558,7 @@ function createRoom(info,index) {
   box(group,.10,.10,d,w/2-.08,.055,0,trimMat,false);
   cylinder(group,.12,.15,.07,0,h-.08,0,metalMat,24);
   sphere(group,.10,.07,.10,0,h-.18,0,bulbMat);
-  const roomLight=new THREE.PointLight(0xffedce,.38,Math.max(w,d)*1.25,2);
+  const roomLight=new THREE.PointLight(0xffedce,.78,Math.max(w,d)*1.65,2);
   roomLight.position.set(0,h-.26,0);group.add(roomLight);
   const label=roomLabel(info.name || "Комната");
   label.position.set(-w/2+.75,h+.16,-d/2+.2);group.add(label);
@@ -1094,7 +1094,10 @@ function makeProductObject(room,item,placement) {
     isDemo:!!item.is_demo,
     isPreview:!!item.is_preview || !!(placement && placement.is_preview),
     modelLimitations:item.model_limitations || (product.model_3d && product.model_3d.limitations) ||
-      (classifyProduct(product)==="generic" ? "Для этого товара пока нет подходящей 3D-модели; показан каталоговый предпросмотр." : null),
+      (product.model_3d && product.model_3d.source==="manufacturer_exact" && product.model_3d.url ? null :
+        classifyProduct(product)==="generic"
+          ? "Для этого товара пока нет подходящей 3D-модели; показан каталоговый предпросмотр."
+          : "Показана процедурная модель по категории и типовым размерам, а не точная модель производителя."),
     room:room
   };
   const exact=product.model_3d && product.model_3d.source==="manufacturer_exact" && product.model_3d.url;

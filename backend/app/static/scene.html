@@ -589,40 +589,46 @@ function productText(item) {
   ].filter(Boolean).join(" ").toLocaleLowerCase("ru").replace(/ё/g,"е");
 }
 function classifyProduct(item) {
-  const t=productText(item);
-  if(/кресло|armchair|accent chair/.test(t))return "armchair";
-  if(/диван|софа|sofa|couch|sectional/.test(t))return "sofa";
-  if(/матрас|mattress/.test(t))return "mattress";
-  if(/кровать|bed frame|bedstead|bedroom bed|\bbed\b/.test(t))return "bed";
-  if(/тумбочк|nightstand|bedside table/.test(t))return "nightstand";
-  if(/комод|dresser|chest of drawers/.test(t))return "dresser";
-  if(/шкаф|wardrobe|гардероб|пенал|closet/.test(t))return "wardrobe";
-  if(/стеллаж|книжн.*полк|bookcase|bookshelf|shelf|полка/.test(t))return "shelf";
-  if(/кухонн.*гарнитур|кухня|кухонный модуль|кухонн.*шкаф|kitchen cabinet|kitchen set|столешниц|countertop/.test(t))return "kitchen";
-  if(/холодильник|refrigerator|fridge/.test(t))return "fridge";
-  if(/стиральн.*машин|washing machine|washer/.test(t))return "washer";
-  if(/посудомоечн|dishwasher/.test(t))return "dishwasher";
-  if(/духов(ой|ая|ку)|oven|варочн.*панел|cooktop/.test(t))return "oven";
-  if(/ванна|bathtub/.test(t))return "bathtub";
-  if(/душев|душевая система|shower/.test(t))return "shower";
-  if(/раковин|умывальник|sink|vanity/.test(t))return "sink";
-  if(/унитаз|toilet|wc pan/.test(t))return "toilet";
-  if(/зеркал|mirror/.test(t))return "mirror";
-  if(/штор|занавес|curtain|drape/.test(t))return "curtain";
-  if(/двер|door/.test(t))return "door";
-  if(/окн|window/.test(t))return "window";
-  if(/телевизор|\btv\b|монитор|monitor/.test(t))return "tv";
-  if(/торшер|floor lamp|standing lamp/.test(t))return "floor_lamp";
-  if(/светильник|лампа|lamp|люстр|бра\b|sconce/.test(t))return "lamp";
-  if(/ковер|ковёр|rug|carpet/.test(t))return "rug";
-  if(/растени|цветок|кашпо|plant|planter/.test(t))return "plant";
-  if(/стул|chair|табурет|stool|барн.*стул/.test(t))return "chair";
-  if(/столешниц|countertop/.test(t))return "kitchen";
-  if(/письменн.*стол|рабочий стол|desk|обеден.*стол|dining table|журнальн.*стол|coffee table|стол/.test(t))return "table";
-  if(/тумба|cabinet|шкафчик/.test(t))return "cabinet";
-  if(/плитк|tile|ламинат|паркет|обои|wallpaper|краск|paint|цемент|шпаклев|смесител|faucet|строительн.*материал/.test(t))return "material";
-  if(/ваза|статуэт|декор|картина|постер|вагонк|decor|vase|sculpture|art print/.test(t))return "decor";
-  return "generic";
+  const normalize=t=>String(t||"").toLocaleLowerCase("ru").replace(/ё/g,"е");
+  const classifyText=t=>{
+    if(/кресло|armchair|accent chair/.test(t))return "armchair";
+    if(/диван|софа|sofa|couch|sectional/.test(t))return "sofa";
+    if(/матрас|mattress/.test(t))return "mattress";
+    if(/кровать|bed frame|bedstead|bedroom bed|\bbed\b/.test(t))return "bed";
+    if(/тумбочк|nightstand|bedside table/.test(t))return "nightstand";
+    if(/комод|dresser|chest of drawers/.test(t))return "dresser";
+    if(/шкаф|wardrobe|гардероб|пенал|closet/.test(t))return "wardrobe";
+    if(/стеллаж|книжн.*полк|bookcase|bookshelf|shelf|полка/.test(t))return "shelf";
+    if(/холодильник|refrigerator|fridge/.test(t))return "fridge";
+    if(/стиральн.*машин|washing machine|washer/.test(t))return "washer";
+    if(/посудомоечн|dishwasher/.test(t))return "dishwasher";
+    if(/духов(ой|ая|ку)|oven|варочн.*панел|cooktop/.test(t))return "oven";
+    if(/ванна|bathtub/.test(t))return "bathtub";
+    if(/душев|душевая система|shower/.test(t))return "shower";
+    if(/раковин|умывальник|sink|vanity/.test(t))return "sink";
+    if(/унитаз|toilet|wc pan/.test(t))return "toilet";
+    if(/зеркал|mirror/.test(t))return "mirror";
+    if(/штор|занавес|curtain|drape/.test(t))return "curtain";
+    if(/двер|door/.test(t))return "door";
+    if(/окн|window/.test(t))return "window";
+    if(/телевизор|\btv\b|монитор|monitor/.test(t))return "tv";
+    if(/торшер|floor lamp|standing lamp/.test(t))return "floor_lamp";
+    if(/светильник|лампа|lamp|люстр|бра\b|sconce/.test(t))return "lamp";
+    if(/ковер|rug|carpet/.test(t))return "rug";
+    if(/растени|цветок|кашпо|plant|planter/.test(t))return "plant";
+    if(/стул|chair|табурет|stool|барн.*стул/.test(t))return "chair";
+    if(/столешниц|countertop/.test(t))return "kitchen";
+    if(/письменн.*стол|рабочий стол|desk|обеден.*стол|dining table|журнальн.*стол|coffee table|стол/.test(t))return "table";
+    if(/кухонн.*гарнитур|кухня|кухонный модуль|кухонн.*шкаф|kitchen cabinet|kitchen set/.test(t))return "kitchen";
+    if(/тумба|cabinet|шкафчик/.test(t))return "cabinet";
+    if(/плитк|tile|ламинат|паркет|обои|wallpaper|краск|paint|цемент|шпаклев|смесител|faucet|строительн.*материал/.test(t))return "material";
+    if(/ваза|статуэт|декор|картина|постер|decor|vase|sculpture|art print/.test(t))return "decor";
+    return "generic";
+  };
+  // Prefer the product title: broad category labels such as "Кухня" must not
+  // turn a fridge or chair into a generic kitchen cabinet.
+  const byName=classifyText(normalize(productName(item)));
+  return byName!=="generic" ? byName : classifyText(normalize(productCategory(item)));
 }
 function getProductDims(item) {
   const type=classifyProduct(item);

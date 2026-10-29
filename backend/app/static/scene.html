@@ -135,6 +135,7 @@ import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import {RoundedBoxGeometry} from "three/addons/geometries/RoundedBoxGeometry.js";
+import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
@@ -165,6 +166,9 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.12;
 stage.appendChild(renderer.domElement);
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(),0.04).texture;
+pmremGenerator.dispose();
 
 const controls = new OrbitControls(camera,renderer.domElement);
 controls.enableDamping = true;

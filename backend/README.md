@@ -92,6 +92,8 @@ cd backend
 pytest -q
 ```
 
+For an existing database that may still have the old unique constraint on `(room_id, product_id)`, run `alembic upgrade head` before enabling repeated furniture instances. The migration is a no-op when the table or legacy constraint does not exist.
+
 Unit tests use `AI_PROVIDER=mock` and do not need live credentials.
 
 Optional live check (manual): set `OPENROUTER_API_KEY` and call `POST /api/v1/ai/analyze-room` with a real room photo.

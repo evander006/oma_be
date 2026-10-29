@@ -865,11 +865,6 @@ async function loadMoreCatalog() {
 }
 async function addCatalogProduct(product,button) {
   if(!selectedRoom){showToast("Сначала выберите комнату");return;}
-  const existing=selectedRoom.items.find(entry=>{
-    const meta=entry.userData.interaction;
-    return meta && meta.product && String(meta.product.id)===String(product.id);
-  });
-  if(existing){selectPlacement(existing);showToast("Этот товар уже добавлен в комнату");return;}
   button.disabled=true;button.textContent="Добавляем…";
   const room=selectedRoom;
   const idx=room.items.length;

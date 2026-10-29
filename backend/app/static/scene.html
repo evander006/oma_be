@@ -344,11 +344,31 @@ function sphere(parent,sx,sy,sz,x,y,z,material) {
 }
 function floorMaterial(info,w,d) {
   const type=String(info.room_type || "").toLowerCase();
-  const isWet=/bath|bathroom|kitchen|laundry|ванн|кухн|санузел/.test(type);
-  const map=(isWet?tileTexture:woodTexture).clone();
-  map.repeat.set(Math.max(1,w/(isWet?.6:1.8)),Math.max(1,d/(isWet?.6:1.8)));
+  const finish=String(info.floor_material || "").toLowerCase();
+  const materialText=type+" "+finish;
+  const isTile=/bath|bathroom|kitchen|laundry|ванн|кухн|санузел|плитк|керамогранит|tile|stone/.test(materialText);
+  const isConcrete=/бетон|microcement|concrete|микроцемент/.test(finish);
+  const baseMap=isTile?tileTexture:(isConcrete?plasterTexture:woodTexture);
+  const map=baseMap.clone();
+  const scale=isTile?.6:(isConcrete?2:1.8);
+  map.repeat.set(Math.max(1,w/scale),Math.max(1,d/scale));
   map.needsUpdate=true;
-  return new THREE.MeshStandardMaterial({map:map,roughness:isWet ? 0.58 : 0.76,metalness:0});
+  return new THREE.MeshStandardMaterial({
+    map:map,
+    color:isConcrete?0xc4c2bc:0xffffff,
+    roughness:isTile?0.58:0.82,
+    metalness:0
+  });
+}
+function wallMaterialFor(info,accent) {
+  const finish=String(info.wall_material || "").toLowerCase();
+  let color=accent?0xd9dfdc:0xf0eee8;
+  if(/сер|gray|grey|бетон|concrete/.test(finish))color=accent?0xb9bbb8:0xd1d0ca;
+  else if(/беж|крем|beige|cream/.test(finish))color=accent?0xd1c3b1:0xe7dac7;
+  else if(/голуб|син|blue/.test(finish))color=accent?0xb7cbd2:0xdce7e9;
+  else if(/зел|green/.test(finish))color=accent?0xb6c6b5:0xdce4d8;
+  else if(/роз|pink/.test(finish))color=accent?0xd9bdb9:0xead9d6;
+  return new THREE.MeshStandardMaterial({map:plasterTexture,color:color,roughness:.94,metalness:0});
 }
 function roomLabel(text) {
   const canvas=document.createElement("canvas");canvas.width=512;canvas.height=96;
@@ -367,6 +387,8 @@ function createRoom(info,index) {
   const col=index%3,row=Math.floor(index/3);
   const x=col*12,z=row*13;
   const group=new THREE.Group();group.position.set(x,0,z);homeGroup.add(group);
+  const roomWallMat=wallMaterialFor(info,false);
+  const roomAccentMat=wallMaterialFor(info,true);
   const floor=box(group,w,.13,d,0,-.07,0,floorMaterial(info,w,d),false);
   floor.userData.interaction={kind:"room",roomId:String(info.id),name:info.name,confirmed:!!info.dimensions_confirmed};
   clickables.push(floor);
@@ -374,11 +396,11 @@ function createRoom(info,index) {
   const windowW=Math.min(1.9,w*.48),windowH=1.18,windowY=1.58;
   const backZ=-d/2;
   const sideW=(w-windowW)/2;
-  box(group,sideW,h,.15,-(windowW+sideW)/2,h/2,backZ,wallMat);
-  box(group,sideW,h,.15,(windowW+sideW)/2,h/2,backZ,wallMat);
+  box(group,sideW,h,.15,-(windowW+sideW)/2,h/2,backZ,roomWallMat);
+  box(group,sideW,h,.15,(windowW+sideW)/2,h/2,backZ,roomWallMat);
   const bottomH=windowY-windowH/2,topY=windowY+windowH/2,topH=Math.max(.1,h-topY);
-  box(group,windowW,bottomH,.15,0,bottomH/2,backZ,wallMat);
-  box(group,windowW,topH,.15,0,topY+topH/2,backZ,wallMat);
+  box(group,windowW,bottomH,.15,0,bottomH/2,backZ,roomWallMat);
+  box(group,windowW,topH,.15,0,topY+topH/2,backZ,roomWallMat);
   box(group,windowW+.12,.07,.22,0,windowY-windowH/2-.03,backZ+.02,frameMat);
   box(group,windowW+.12,.07,.22,0,windowY+windowH/2+.03,backZ+.02,frameMat);
   box(group,.07,windowH,.22,-windowW/2,windowY,backZ+.02,frameMat);
@@ -395,11 +417,11 @@ function createRoom(info,index) {
     }
   }
   // Full side wall, and lower cutaway walls facing the camera.
-  box(group,.15,h,d,-w/2,h/2,0,wallMat);
-  box(group,.15,1.02,d,w/2,.51,0,accentWallMat);
+  box(group,.15,h,d,-w/2,h/2,0,roomWallMat);
+  box(group,.15,1.02,d,w/2,.51,0,roomAccentMat);
   const opening=Math.min(.92,w*.26),segment=(w-opening)/2,frontZ=d/2;
-  box(group,segment,.88,.15,-(opening+segment)/2,.44,frontZ,accentWallMat);
-  box(group,segment,.88,.15,(opening+segment)/2,.44,frontZ,accentWallMat);
+  box(group,segment,.88,.15,-(opening+segment)/2,.44,frontZ,roomAccentMat);
+  box(group,segment,.88,.15,(opening+segment)/2,.44,frontZ,roomAccentMat);
   // Wall caps and skirting create architectural edges and contact shadows.
   box(group,w,.055,.18,0,.92,frontZ,trimMat,false);
   box(group,.18,.055,d,w/2,1.05,0,trimMat,false);

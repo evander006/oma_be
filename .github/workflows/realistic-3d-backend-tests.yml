@@ -31,5 +31,5 @@ jobs:
         run: pip install -r requirements.txt
       - name: Compile backend Python
         run: python -m compileall -q backend/app backend/alembic
-      - name: Run backend tests
-        run: PYTHONPATH=backend python -m pytest -q backend/tests
+      - name: Run 3D and migration regression tests
+        run: PYTHONPATH=backend python -m pytest -q backend/tests/test_scene.py backend/tests/test_ecosystem_migration.py

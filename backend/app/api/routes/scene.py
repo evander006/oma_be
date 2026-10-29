@@ -32,6 +32,30 @@ def _float(value):
     return float(value) if value is not None else None
 
 
+def _product_category_path(product: Product) -> str:
+    names: list[str] = []
+    current = product.category
+    seen: set[str] = set()
+    while current is not None and current.id not in seen and len(names) < 8:
+        seen.add(current.id)
+        if current.name:
+            names.append(current.name)
+        current = current.parent
+    return " / ".join(reversed(names))
+
+
+def _product_primary_image_url(product: Product) -> str | None:
+    images = sorted(
+        product.images or [],
+        key=lambda image: (not image.is_primary, image.sort_order, image.id),
+    )
+    for image in images:
+        url = image.source_url
+        if url and url.startswith(("https://", "http://")):
+            return url
+    return None
+
+
 @router.get("/properties/{property_id}/scene")
 def property_scene(
     property_id: int,
@@ -67,6 +91,18 @@ def property_scene(
                 "is_demo": False,
                 "purchase_status": "design_preview",
                 "category_id": product.category_id,
+                "category_name": product.category.name if product.category else None,
+                "category_path": _product_category_path(product),
+                "subcategory": product.subcategory,
+                "description": product.description,
+                "materials": product.materials,
+                "colors": product.colors,
+                "style_tags": product.style_tags,
+                "room_types": product.room_types,
+                "primary_image_url": _product_primary_image_url(product),
+                "width_mm": _float(product.width_mm),
+                "height_mm": _float(product.height_mm),
+                "depth_mm": _float(product.depth_mm),
                 "price": _float(product.price),
                 "currency": product.currency or "BYN",
                 "position": {
@@ -98,6 +134,18 @@ def property_scene(
                 "is_preview": False,
                 "placement_type": "owned",
                 "category_id": product.category_id,
+                "category_name": product.category.name if product.category else None,
+                "category_path": _product_category_path(product),
+                "subcategory": product.subcategory,
+                "description": product.description,
+                "materials": product.materials,
+                "colors": product.colors,
+                "style_tags": product.style_tags,
+                "room_types": product.room_types,
+                "primary_image_url": _product_primary_image_url(product),
+                "width_mm": _float(product.width_mm),
+                "height_mm": _float(product.height_mm),
+                "depth_mm": _float(product.depth_mm),
                 "price": _float(product.price),
                 "currency": product.currency or "BYN",
                 "purchase_status": (

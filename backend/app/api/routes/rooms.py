@@ -343,21 +343,15 @@ def add_design_placement(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict:
-    """Add a catalog item to a room draft without claiming it has been purchased."""
+    """Add one catalog instance; previews remain separate from owned purchases."""
     room = require_room_owner(db, room_id, user)
     product = db.get(Product, payload.product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # If this is already an eligible OMA purchase, keep it in the owned layer.
     eligible = eligible_order_products(db, user)
     if payload.product_id in eligible:
-        # A purchased item must not remain in the unpurchased design-preview layer.
-        db.query(RoomDesignPlacement).filter(
-            RoomDesignPlacement.room_id == room.id,
-            RoomDesignPlacement.product_id == payload.product_id,
-        ).delete(synchronize_session=False)
-        placement = (
+        owned = (
             db.query(RoomPlacement)
             .filter(
                 RoomPlacement.room_id == room.id,
@@ -365,42 +359,36 @@ def add_design_placement(
             )
             .first()
         )
-        if not placement:
-            placement = RoomPlacement(room_id=room.id, product_id=payload.product_id)
-            db.add(placement)
-        placement.pos_x = payload.pos_x
-        placement.pos_y = payload.pos_y
-        placement.pos_z = payload.pos_z
-        placement.rotation_y = payload.rotation_y
-        db.commit()
-        db.refresh(placement)
-        return {
-            "id": placement.id,
-            "room_id": room.id,
-            "product_id": product.id,
-            "name": product.name,
-            "placement_type": "owned",
-            "is_demo": eligible[payload.product_id],
-        }
+        # The first eligible instance is linked as owned. Further copies of the
+        # same SKU are separate design previews so chairs, lamps, etc. can repeat.
+        if not owned:
+            owned = RoomPlacement(room_id=room.id, product_id=payload.product_id)
+            owned.pos_x = payload.pos_x
+            owned.pos_y = payload.pos_y
+            owned.pos_z = payload.pos_z
+            owned.rotation_y = payload.rotation_y
+            db.add(owned)
+            db.commit()
+            db.refresh(owned)
+            return {
+                "id": owned.id,
+                "room_id": room.id,
+                "product_id": product.id,
+                "name": product.name,
+                "placement_type": "owned",
+                "is_demo": eligible[payload.product_id],
+            }
 
-    placement = (
-        db.query(RoomDesignPlacement)
-        .filter(
-            RoomDesignPlacement.room_id == room.id,
-            RoomDesignPlacement.product_id == payload.product_id,
-        )
-        .first()
+    # Every click creates a distinct instance. The same SKU can appear more than once.
+    placement = RoomDesignPlacement(
+        room_id=room.id,
+        product_id=payload.product_id,
+        pos_x=payload.pos_x,
+        pos_y=payload.pos_y,
+        pos_z=payload.pos_z,
+        rotation_y=payload.rotation_y,
     )
-    if not placement:
-        placement = RoomDesignPlacement(
-            room_id=room.id,
-            product_id=payload.product_id,
-        )
-        db.add(placement)
-    placement.pos_x = payload.pos_x
-    placement.pos_y = payload.pos_y
-    placement.pos_z = payload.pos_z
-    placement.rotation_y = payload.rotation_y
+    db.add(placement)
     db.commit()
     db.refresh(placement)
     return {

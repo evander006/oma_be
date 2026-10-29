@@ -204,6 +204,9 @@ def test_scene_editor_uses_semantic_models_and_non_cabinet_fallback(client):
     assert 'if(type==="chair")' in html
     assert "buildGenericCatalogPreview(group,item,w,h,d,wood,metal)" in html
     assert "Для этого товара пока нет подходящей 3D-модели" in html
+    assert 'id="view-toggle"' in html
+    assert 'let roomViewMode = "interior"' in html
+    assert "const ceiling=box(group,w,.12,d,0,h+.06,0,roomWallMat,false);" in html
     assert "const dragPlane = new THREE.Plane(new THREE.Vector3(0,1,0),-.005);" in html
 
 

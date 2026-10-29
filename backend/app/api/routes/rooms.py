@@ -352,6 +352,11 @@ def add_design_placement(
     # If this is already an eligible OMA purchase, keep it in the owned layer.
     eligible = eligible_order_products(db, user)
     if payload.product_id in eligible:
+        # A purchased item must not remain in the unpurchased design-preview layer.
+        db.query(RoomDesignPlacement).filter(
+            RoomDesignPlacement.room_id == room.id,
+            RoomDesignPlacement.product_id == payload.product_id,
+        ).delete(synchronize_session=False)
         placement = (
             db.query(RoomPlacement)
             .filter(

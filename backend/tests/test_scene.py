@@ -158,3 +158,10 @@ def test_same_catalog_item_can_be_placed_more_than_once(client, seeded_products)
     previews = scene["rooms"][0]["design_products"]
     assert len(previews) == 2
     assert all(item["product_id"] == product_id for item in previews)
+
+
+def test_generic_editor_route_serves_scene_shell(client):
+    response = client.get("/api/v1/scene/editor")
+    assert response.status_code == 200
+    assert "OmaRoomBridge" in response.text
+    assert "createRoom(info,index)" in response.text

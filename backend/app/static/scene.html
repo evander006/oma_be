@@ -187,6 +187,11 @@ sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;
 sun.shadow.bias=-0.00018;
 sun.shadow.normalBias=.025;
 scene.add(sun);
+const ground=new THREE.Mesh(
+  new THREE.PlaneGeometry(160,160),
+  new THREE.MeshStandardMaterial({color:0xd8dddf,roughness:1,metalness:0})
+);
+ground.rotation.x=-Math.PI/2;ground.position.y=-.17;ground.receiveShadow=true;scene.add(ground);
 
 const loader = new GLTFLoader();
 const homeGroup = new THREE.Group();
@@ -246,26 +251,27 @@ function makeWoodTexture() {
   canvas.width = 1024;canvas.height = 1024;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#b8a188";ctx.fillRect(0,0,1024,1024);
-  const plankH = 128;
-  for (let row=0;row<8;row++) {
+  const plankH = 96;
+  for (let row=0;row<Math.ceil(1024/plankH);row++) {
     const y=row*plankH;
+    const height=Math.min(plankH,1024-y);
     ctx.fillStyle = ["#c4ad92","#b9a187","#c8b399","#b5a087"][row%4];
-    ctx.fillRect(0,y,1024,plankH);
-    const offset=(row%2)*112;
-    for (let x=-offset;x<1024;x+=256) {
-      ctx.strokeStyle="rgba(78,54,34,.28)";ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+plankH);ctx.stroke();
-      ctx.strokeStyle="rgba(255,246,225,.24)";ctx.lineWidth=1;
-      for(let grain=0;grain<7;grain++){
-        const gy=y+12+grain*17;
+    ctx.fillRect(0,y,1024,height);
+    const offset=(row%2)*310;
+    for (let x=-offset;x<1024;x+=640) {
+      ctx.strokeStyle="rgba(78,54,34,.3)";ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+height);ctx.stroke();
+      ctx.strokeStyle="rgba(255,246,225,.22)";ctx.lineWidth=1;
+      for(let grain=0;grain<6;grain++){
+        const gy=y+9+grain*15;
         ctx.beginPath();ctx.moveTo(x+8,gy);
-        ctx.bezierCurveTo(x+65,gy-4,x+135,gy+4,x+247,gy-1);ctx.stroke();
+        ctx.bezierCurveTo(x+155,gy-5,x+365,gy+4,x+625,gy-1);ctx.stroke();
       }
-      ctx.fillStyle="rgba(91,62,39,.13)";
-      ctx.beginPath();ctx.ellipse(x+88,y+47,18,4,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="rgba(91,62,39,.11)";
+      ctx.beginPath();ctx.ellipse(x+235,y+height*.48,23,4,0,0,Math.PI*2);ctx.fill();
     }
-    ctx.strokeStyle="rgba(255,255,255,.18)";ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(0,y+3);ctx.lineTo(1024,y+3);ctx.stroke();
+    ctx.strokeStyle="rgba(255,255,255,.2)";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,y+2);ctx.lineTo(1024,y+2);ctx.stroke();
   }
   return texture(canvas,1,1);
 }
@@ -384,7 +390,9 @@ function createRoom(info,index) {
   box(group,windowW+.32,.035,.08,0,windowY+windowH/2+.12,backZ+.14,darkWoodMat,false);
   const curtainMat=new THREE.MeshStandardMaterial({color:0xc9c6bf,map:fabricTexture,roughness:.95});
   for(const side of [-1,1]){
-    rounded(group,.22,windowH+.18,.07,side*(windowW/2+.07),windowY,backZ+.16,curtainMat,.025);
+    for(let fold=0;fold<4;fold++){
+      rounded(group,.052,windowH+.18,.07,side*(windowW/2+.02+fold*.047),windowY,backZ+.16,curtainMat,.012);
+    }
   }
   // Full side wall, and lower cutaway walls facing the camera.
   box(group,.15,h,d,-w/2,h/2,0,wallMat);
@@ -401,6 +409,8 @@ function createRoom(info,index) {
   // Subtle ceiling light fixture; the open ceiling keeps the scene inspectable.
   cylinder(group,.12,.15,.07,0,h-.08,0,metalMat,24);
   sphere(group,.10,.07,.10,0,h-.18,0,bulbMat);
+  const roomLight=new THREE.PointLight(0xffedce,.38,Math.max(w,d)*1.25,2);
+  roomLight.position.set(0,h-.26,0);group.add(roomLight);
   const label=roomLabel(info.name || "Комната");
   label.position.set(-w/2+.75,h+.16,-d/2+.2);group.add(label);
   const room={id:String(info.id),info:info,group:group,x:x,z:z,w:w,d:d,h:h,items:[],floor:floor};

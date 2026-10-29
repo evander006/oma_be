@@ -21,6 +21,7 @@ from pathlib import Path
 import shutil
 import sqlite3
 import tempfile
+import time
 from urllib.parse import urlsplit
 
 import httpx
@@ -49,7 +50,7 @@ def _fingerprint(file: Path) -> str:
     return digest.hexdigest()
 
 
-def fetch_product_image(client: httpx.Client, urls_json: str) -> Image.Image | None:
+def fetch_product_image(client: httpx.Client, urls_json: str, request_delay: float = 0.15) -> tuple[Image.Image, str] | None:
     try:
         urls = json.loads(urls_json)
     except (TypeError, ValueError):
@@ -77,9 +78,12 @@ def fetch_product_image(client: httpx.Client, urls_json: str) -> Image.Image | N
             with Image.open(BytesIO(chunks)) as original:
                 picture = ImageOps.exif_transpose(original).convert("RGB")
                 picture.thumbnail((1024, 1024))
-                return picture
+                return picture, url
         except (httpx.HTTPError, OSError, ValueError, Image.DecompressionBombError):
             continue
+        finally:
+            if request_delay > 0:
+                time.sleep(request_delay)
     return None
 
 
@@ -105,7 +109,7 @@ def _write_manifest(path: Path, data: dict) -> None:
     temporary.replace(path)
 
 
-def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_coverage: float) -> dict:
+def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_coverage: float, request_delay: float = 0.15) -> dict:
     from transformers import AutoModel, AutoProcessor
     import torch
 
@@ -160,6 +164,7 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                 )
                 processed = {row[0] for row in metadata.execute("SELECT row_idx FROM indexed_products")}
                 pending: list[tuple[int, str, str, str, str, str, object, Image.Image]] = []
+                missing_count = 0
 
                 def flush() -> None:
                     if not pending:
@@ -191,16 +196,11 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                             break
                         if idx in processed:
                             continue
-                        picture = fetch_product_image(client, urls)
-                        if picture is None:
+                        downloaded = fetch_product_image(client, urls, request_delay=request_delay)
+                        if downloaded is None:
+                            missing_count += 1
                             continue
-                        try:
-                            image_url = next(
-                                (url for url in json.loads(urls) if isinstance(url, str)
-                                 and url.startswith("https://")), ""
-                            )
-                        except (ValueError, TypeError):
-                            image_url = ""
+                        picture, image_url = downloaded
                         try:
                             numeric_price = float(price) if price is not None else None
                         except (ValueError, TypeError):
@@ -220,6 +220,7 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                 summary = {
                     **expected, "indexed_count": count,
                     "coverage": round(coverage, 6), "complete": complete,
+                    "image_download_failures_this_run": missing_count,
                 }
                 _write_manifest(manifest_path, summary)
                 return summary
@@ -234,13 +235,14 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=12)
     parser.add_argument("--max-items", type=int, default=0, help="Smoke-test only; index remains incomplete")
     parser.add_argument("--minimum-coverage", type=float, default=0.80)
+    parser.add_argument("--request-delay", type=float, default=0.15, help="Seconds between attempts to avoid overloading OMA photo hosting")
     args = parser.parse_args()
     if args.batch_size < 1 or args.batch_size > 64:
         parser.error("--batch-size must be in 1..64")
-    if args.max_items < 0 or not 0 < args.minimum_coverage <= 1:
+    if args.max_items < 0 or not 0 < args.minimum_coverage <= 1 or args.request_delay < 0:
         parser.error("Invalid item limit or coverage")
     summary = build(args.source.resolve(), args.output.resolve(),
-                    args.batch_size, args.max_items, args.minimum_coverage)
+                    args.batch_size, args.max_items, args.minimum_coverage, args.request_delay)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if not summary["complete"]:
         print("Index is not deployable yet. Retry indexing missing images or raise coverage.")

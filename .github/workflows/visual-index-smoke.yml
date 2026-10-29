@@ -51,6 +51,42 @@ jobs:
           assert count > 0, 'No usable external product photos in the sample'
           assert not manifest['complete'], 'A 24-product sample must not be deployed as a full index'
           PY
+      - name: Verify a real catalog image retrieves its exact indexed SKU
+        run: |
+          PYTHONPATH=backend python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import sqlite3
+          import httpx
+          from app.services.full_catalog_visual import search_full_catalog
+
+          root = Path('/tmp/oma_visual_sample')
+          manifest_path = root / 'manifest.json'
+          original = manifest_path.read_text('utf-8')
+          with sqlite3.connect(root / 'metadata.sqlite') as db:
+              sku, url = db.execute(
+                  "SELECT sku,image_url FROM indexed_products ORDER BY row_idx LIMIT 1"
+              ).fetchone()
+          # This locally overrides the completion guard ONLY for a 24-row
+          # integration smoke test; restore the incomplete manifest afterwards.
+          fixture = json.loads(original)
+          fixture['complete'] = True
+          manifest_path.write_text(json.dumps(fixture), encoding='utf-8')
+          try:
+              os.environ['OMA_VISUAL_INDEX_DIR'] = str(root)
+              response = httpx.get(url, follow_redirects=True, timeout=25)
+              response.raise_for_status()
+              found = search_full_catalog(response.content, [], root)
+              assert found is not None, 'Query embedding runtime unavailable'
+              assert found['matches'], 'Indexed image returned no candidate'
+              assert found['matches'][0]['sku'] == sku, (
+                  f"Expected {sku}, got {found['matches'][0]['sku']}"
+              )
+              print('INDEXED_PRODUCT_SELF_MATCH_SKU=', sku)
+          finally:
+              manifest_path.write_text(original, encoding='utf-8')
+          PY
       - name: Publish smoke-test manifest and metadata (no large vectors)
         if: always()
         uses: actions/upload-artifact@v4

@@ -58,9 +58,6 @@ def property_scene(
         .all()
     )
     for placement, product in design_rows:
-        # A design draft is not a second copy of a product already eligible as owned.
-        if product.id in eligible:
-            continue
         design_by_room[placement.room_id].append(
             {
                 "placement_id": placement.id,

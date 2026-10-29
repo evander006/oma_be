@@ -195,6 +195,18 @@ def test_scene_exposes_semantic_product_data_for_3d_preview(client, seeded_produ
         assert field in item
 
 
+def test_scene_editor_uses_semantic_models_and_non_cabinet_fallback(client):
+    response = client.get("/api/v1/scene/editor")
+    assert response.status_code == 200
+    html = response.text
+    assert "function classifyProduct(item)" in html
+    assert 'if(type==="sofa" || type==="armchair")' in html
+    assert 'if(type==="chair")' in html
+    assert "buildGenericCatalogPreview(group,item,w,h,d,wood,metal)" in html
+    assert "Для этого товара пока нет подходящей 3D-модели" in html
+    assert "const dragPlane = new THREE.Plane(new THREE.Vector3(0,1,0),-.005);" in html
+
+
 def test_generic_editor_route_serves_scene_shell(client):
     response = client.get("/api/v1/scene/editor")
     assert response.status_code == 200

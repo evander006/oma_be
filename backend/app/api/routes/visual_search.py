@@ -22,6 +22,7 @@ from app.db.models import Product
 from app.db.session import get_db
 from app.services.ai_provider import AIImagePart, AIProviderError, get_ai_provider
 from app.services.asset_urls import resolve_product_image_path, serialize_product
+from app.services.full_catalog_visual import index_status, search_full_catalog
 
 router = APIRouter(tags=["visual-search"])
 Image.MAX_IMAGE_PIXELS = 28_000_000
@@ -140,6 +141,12 @@ def _match_text(product: Product, terms: list[str]) -> int:
     return score
 
 
+@router.get("/visual-search/status")
+def visual_search_status() -> dict:
+    """Readiness of the optional full-catalogue image index."""
+    return index_status(get_settings().data_dir)
+
+
 @router.post("/visual-search")
 async def visual_search(
     file: UploadFile = File(...),
@@ -169,6 +176,11 @@ async def visual_search(
         raise HTTPException(status_code=400, detail="Невозможно прочитать изображение") from exc
 
     terms = _vision_terms(vision_bytes)
+    # The full Android catalogue index takes precedence over the small backend demo DB.
+    # A complete index returning zero matches must NOT fall back to unrelated items.
+    full_catalog = search_full_catalog(vision_bytes, terms, settings.data_dir)
+    if full_catalog is not None:
+        return full_catalog
     products = db.query(Product).all()
     scored = []
     for product in products:

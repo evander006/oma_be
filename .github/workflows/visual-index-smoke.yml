@@ -1,0 +1,98 @@
+name: Visual index end-to-end smoke test
+on:
+  push:
+    branches: [feat/full-catalog-visual-index]
+    paths:
+      - 'backend/scripts/build_full_visual_index.py'
+      - 'backend/app/services/full_catalog_visual.py'
+      - '.github/workflows/visual-index-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  index-sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install CPU vision dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy==2.2.1 Pillow==11.0.0 httpx==0.28.1 'transformers>=4.52,<5' 'sentencepiece>=0.2'
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Fetch public full OMA catalogue for smoke test
+        run: |
+          curl --fail --location --retry 3 --max-time 180 \
+            'https://raw.githubusercontent.com/evander006/oma_front/main/android_companion/app/src/main/assets/embedded_catalog.db.bin' \
+            --output /tmp/oma_catalog.db.bin
+          test "$(stat -c%s /tmp/oma_catalog.db.bin)" -gt 10000000
+      - name: Encode first 24 real catalogue images (sample only)
+        run: |
+          python backend/scripts/build_full_visual_index.py \
+            /tmp/oma_catalog.db.bin --output /tmp/oma_visual_sample \
+            --max-items 24 --batch-size 4 --minimum-coverage 0.01
+          python - <<'PY'
+          import json
+          import sqlite3
+          from pathlib import Path
+          manifest = json.loads(Path('/tmp/oma_visual_sample/manifest.json').read_text())
+          with sqlite3.connect('/tmp/oma_visual_sample/metadata.sqlite') as db:
+              count = db.execute('SELECT COUNT(*) FROM indexed_products').fetchone()[0]
+          print('REAL_PRODUCTS_ENCODED=', count, 'CATALOG_SIZE=', manifest['catalog_count'])
+          assert manifest['catalog_count'] >= 120000
+          assert count > 0, 'No usable external product photos in the sample'
+          assert not manifest['complete'], 'A 24-product sample must not be deployed as a full index'
+          PY
+      - name: Verify a real catalog image retrieves its exact indexed SKU
+        run: |
+          PYTHONPATH=backend python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import sqlite3
+          import httpx
+          from app.services.full_catalog_visual import search_full_catalog
+
+          root = Path('/tmp/oma_visual_sample')
+          manifest_path = root / 'manifest.json'
+          original = manifest_path.read_text('utf-8')
+          with sqlite3.connect(root / 'metadata.sqlite') as db:
+              sku, url = db.execute(
+                  "SELECT sku,image_url FROM indexed_products ORDER BY row_idx LIMIT 1"
+              ).fetchone()
+          # This locally overrides the completion guard ONLY for a 24-row
+          # integration smoke test; restore the incomplete manifest afterwards.
+          fixture = json.loads(original)
+          fixture['complete'] = True
+          manifest_path.write_text(json.dumps(fixture), encoding='utf-8')
+          try:
+              os.environ['OMA_VISUAL_INDEX_DIR'] = str(root)
+              response = httpx.get(url, follow_redirects=True, timeout=25)
+              response.raise_for_status()
+              found = search_full_catalog(response.content, [], root)
+              assert found is not None, 'Query embedding runtime unavailable'
+              assert found['matches'], 'Indexed image returned no candidate'
+              assert found['matches'][0]['sku'] == sku, (
+                  f"Expected {sku}, got {found['matches'][0]['sku']}"
+              )
+              print('INDEXED_PRODUCT_SELF_MATCH_SKU=', sku)
+          finally:
+              manifest_path.write_text(original, encoding='utf-8')
+          PY
+      - name: Publish smoke-test manifest and metadata (no large vectors)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-index-smoke-report
+          path: |
+            /tmp/oma_visual_sample/manifest.json
+            /tmp/oma_visual_sample/metadata.sqlite
+          if-no-files-found: ignore

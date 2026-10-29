@@ -1,0 +1,45 @@
+name: Verify Windows Wi-Fi setup script
+on:
+  push:
+    branches: [feat/full-catalog-visual-index]
+    paths:
+      - 'backend/scripts/setup_oma_wifi.ps1'
+      - '.github/workflows/windows-wifi-setup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parse-windows-script:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse with native Windows PowerShell
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'backend/scripts/setup_oma_wifi.ps1').Path,
+            [ref]$tokens, [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.ToString() }
+            exit 1
+          }
+          Write-Host 'Windows PowerShell parser: OK'
+      - name: Check firewall safeguards
+        shell: powershell
+        run: |
+          $script = Get-Content 'backend/scripts/setup_oma_wifi.ps1' -Raw
+          foreach ($required in @('LocalSubnet', '-Profile Private', '-InterfaceAlias', '-LocalAddress', 'Get-NetConnectionProfile', 'Start-Process')) {
+            if (-not $script.Contains($required)) {
+              throw "Required Wi-Fi safety constraint absent: $required"
+            }
+          }
+          if ($script -match 'Disable-NetFirewallProfile|Set-NetFirewallProfile\s+-Enabled\s+False') {
+            throw 'Unsafe firewall disable command detected'
+          }
+          Write-Host 'Firewall scoping checks: OK'

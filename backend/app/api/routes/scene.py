@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.db.models import Product, Property, Room, RoomPlacement, User
+from app.db.models import Product, Property, Room, RoomDesignPlacement, RoomPlacement, User
 from app.db.session import get_db
 from app.services.asset_urls import product_model_url
 from app.services.purchase_eligibility import eligible_order_products
@@ -49,6 +49,43 @@ def property_scene(
         .all()
     )
     by_room: dict[int, list[dict]] = {room.id: [] for room in rooms}
+    design_by_room: dict[int, list[dict]] = {room.id: [] for room in rooms}
+    design_rows = (
+        db.query(RoomDesignPlacement, Product)
+        .join(Room, Room.id == RoomDesignPlacement.room_id)
+        .join(Product, Product.id == RoomDesignPlacement.product_id)
+        .filter(Room.property_id == prop.id)
+        .all()
+    )
+    for placement, product in design_rows:
+        design_by_room[placement.room_id].append(
+            {
+                "placement_id": placement.id,
+                "product_id": product.id,
+                "name": product.name,
+                "is_preview": True,
+                "is_demo": False,
+                "purchase_status": "design_preview",
+                "category_id": product.category_id,
+                "price": _float(product.price),
+                "currency": product.currency or "BYN",
+                "position": {
+                    "x": _float(placement.pos_x),
+                    "y": _float(placement.pos_y),
+                    "z": _float(placement.pos_z),
+                    "rotation_y": _float(placement.rotation_y),
+                },
+                "model_url": product_model_url(product.id)
+                if product.has_3d_model and product.model_path else None,
+                "model_source": product.model_source,
+                "model_limitations": product.model_limitations,
+                "dimensions_m": {
+                    "width": _float(product.model_width_m),
+                    "height": _float(product.model_height_m),
+                    "depth": _float(product.model_depth_m),
+                },
+            }
+        )
     for placement, product in placements:
         if placement.product_id not in eligible:
             continue
@@ -58,6 +95,11 @@ def property_scene(
                 "product_id": product.id,
                 "name": product.name,
                 "is_demo": eligible[product.id],
+                "is_preview": False,
+                "placement_type": "owned",
+                "category_id": product.category_id,
+                "price": _float(product.price),
+                "currency": product.currency or "BYN",
                 "purchase_status": (
                     "demonstration_order" if eligible[product.id] else "confirmed_order"
                 ),
@@ -97,6 +139,7 @@ def property_scene(
                     and room.height_m is not None
                 ),
                 "products": by_room[room.id],
+                "design_products": design_by_room[room.id],
             }
             for room in rooms
         ],

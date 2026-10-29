@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.db.models import Product, Property, Room, RoomPlacement, User
+from app.db.models import Product, Property, Room, RoomDesignPlacement, RoomPlacement, User
 from app.db.session import get_db
 from app.services.asset_urls import product_model_url
 from app.services.purchase_eligibility import eligible_order_products
@@ -32,6 +32,30 @@ def _float(value):
     return float(value) if value is not None else None
 
 
+def _product_category_path(product: Product) -> str:
+    names: list[str] = []
+    current = product.category
+    seen: set[str] = set()
+    while current is not None and current.id not in seen and len(names) < 8:
+        seen.add(current.id)
+        if current.name:
+            names.append(current.name)
+        current = current.parent
+    return " / ".join(reversed(names))
+
+
+def _product_primary_image_url(product: Product) -> str | None:
+    images = sorted(
+        product.images or [],
+        key=lambda image: (not image.is_primary, image.sort_order, image.id),
+    )
+    for image in images:
+        url = image.source_url
+        if url and url.startswith(("https://", "http://")):
+            return url
+    return None
+
+
 @router.get("/properties/{property_id}/scene")
 def property_scene(
     property_id: int,
@@ -49,6 +73,55 @@ def property_scene(
         .all()
     )
     by_room: dict[int, list[dict]] = {room.id: [] for room in rooms}
+    design_by_room: dict[int, list[dict]] = {room.id: [] for room in rooms}
+    design_rows = (
+        db.query(RoomDesignPlacement, Product)
+        .join(Room, Room.id == RoomDesignPlacement.room_id)
+        .join(Product, Product.id == RoomDesignPlacement.product_id)
+        .filter(Room.property_id == prop.id)
+        .all()
+    )
+    for placement, product in design_rows:
+        design_by_room[placement.room_id].append(
+            {
+                "placement_id": placement.id,
+                "product_id": product.id,
+                "name": product.name,
+                "is_preview": True,
+                "is_demo": False,
+                "purchase_status": "design_preview",
+                "category_id": product.category_id,
+                "category_name": product.category.name if product.category else None,
+                "category_path": _product_category_path(product),
+                "subcategory": product.subcategory,
+                "description": product.description,
+                "materials": product.materials,
+                "colors": product.colors,
+                "style_tags": product.style_tags,
+                "room_types": product.room_types,
+                "primary_image_url": _product_primary_image_url(product),
+                "width_mm": _float(product.width_mm),
+                "height_mm": _float(product.height_mm),
+                "depth_mm": _float(product.depth_mm),
+                "price": _float(product.price),
+                "currency": product.currency or "BYN",
+                "position": {
+                    "x": _float(placement.pos_x),
+                    "y": _float(placement.pos_y),
+                    "z": _float(placement.pos_z),
+                    "rotation_y": _float(placement.rotation_y),
+                },
+                "model_url": product_model_url(product.id)
+                if product.has_3d_model and product.model_path else None,
+                "model_source": product.model_source,
+                "model_limitations": product.model_limitations,
+                "dimensions_m": {
+                    "width": _float(product.model_width_m),
+                    "height": _float(product.model_height_m),
+                    "depth": _float(product.model_depth_m),
+                },
+            }
+        )
     for placement, product in placements:
         if placement.product_id not in eligible:
             continue
@@ -58,6 +131,23 @@ def property_scene(
                 "product_id": product.id,
                 "name": product.name,
                 "is_demo": eligible[product.id],
+                "is_preview": False,
+                "placement_type": "owned",
+                "category_id": product.category_id,
+                "category_name": product.category.name if product.category else None,
+                "category_path": _product_category_path(product),
+                "subcategory": product.subcategory,
+                "description": product.description,
+                "materials": product.materials,
+                "colors": product.colors,
+                "style_tags": product.style_tags,
+                "room_types": product.room_types,
+                "primary_image_url": _product_primary_image_url(product),
+                "width_mm": _float(product.width_mm),
+                "height_mm": _float(product.height_mm),
+                "depth_mm": _float(product.depth_mm),
+                "price": _float(product.price),
+                "currency": product.currency or "BYN",
                 "purchase_status": (
                     "demonstration_order" if eligible[product.id] else "confirmed_order"
                 ),
@@ -88,6 +178,11 @@ def property_scene(
                 "id": room.id,
                 "name": room.name,
                 "room_type": room.room_type,
+                "description": room.description,
+                "style_preference": room.style_preference,
+                "wall_material": room.wall_material,
+                "floor_material": room.floor_material,
+                "ceiling_material": room.ceiling_material,
                 "width_m": _float(room.width_m),
                 "length_m": _float(room.length_m),
                 "height_m": _float(room.height_m),
@@ -97,10 +192,20 @@ def property_scene(
                     and room.height_m is not None
                 ),
                 "products": by_room[room.id],
+                "design_products": design_by_room[room.id],
             }
             for room in rooms
         ],
     }
+
+
+@router.get("/scene/editor", response_class=HTMLResponse, include_in_schema=False)
+def scene_editor() -> HTMLResponse:
+    """Serve the editor shell for native apps that provide their own local room/catalog bridge."""
+    html = (Path(__file__).resolve().parents[2] / "static" / "scene.html").read_text(
+        encoding="utf-8"
+    )
+    return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/scene/view/{property_id}", response_class=HTMLResponse, include_in_schema=False)

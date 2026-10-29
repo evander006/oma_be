@@ -1,0 +1,35 @@
+name: Realistic 3D backend tests
+
+on:
+  push:
+    branches:
+      - feat/realistic-3d-interior
+    paths:
+      - "backend/**"
+      - ".github/workflows/realistic-3d-backend-tests.yml"
+  pull_request:
+    branches:
+      - codex/digital-home-ecosystem
+    paths:
+      - "backend/**"
+      - ".github/workflows/realistic-3d-backend-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile backend Python
+        run: python -m compileall -q backend/app backend/alembic
+      - name: Run 3D and migration regression tests
+        run: PYTHONPATH=backend python -m pytest -q backend/tests/test_scene.py backend/tests/test_ecosystem_migration.py

@@ -63,7 +63,10 @@ Product reference images are loaded for a future edit endpoint; the current defa
 
 - Local `data/products/products.json` + SQLite (currently **~20** sample products in-repo; parser/import path preserved for a larger dump when provided).
 - Filters: category, budget/price, color, material, style tags, room type, dimensions (unknown dimensions are never treated as a fit), installation flag.
-- 3D: procedural/sample GLBs today; real GLB assets can be dropped under `data/models/products/{product_id}.glb` later without changing product IDs.
+- 3D room editor: a realistic cutaway room shell with procedural wood/tile/plaster PBR textures, soft shadows and detailed category-based furniture models.
+- The scene catalog uses the existing paginated/searchable `GET /products` API. Available items can be placed in a saved design draft, dragged, rotated and removed; text search queries the backend rather than only the first visible page.
+- Unpurchased design previews are stored separately in `room_design_placements` and are never reported as purchases. The existing owned layer still shows only eligible order items explicitly linked to a room.
+- Procedural furniture is a visual approximation, not a manufacturer-accurate digital twin. Exact GLB files can be supplied under `data/models/products/{product_id}.glb` and are used only when marked `manufacturer_exact`.
 
 ## Renovation & loyalty
 
@@ -89,6 +92,8 @@ cd backend
 pytest -q
 ```
 
+For an existing database that may still have the old unique constraint on `(room_id, product_id)`, run `alembic upgrade head` before enabling repeated furniture instances. The migration is a no-op when the table or legacy constraint does not exist.
+
 Unit tests use `AI_PROVIDER=mock` and do not need live credentials.
 
 Optional live check (manual): set `OPENROUTER_API_KEY` and call `POST /api/v1/ai/analyze-room` with a real room photo.
@@ -97,7 +102,8 @@ Optional live check (manual): set `OPENROUTER_API_KEY` and call `POST /api/v1/ai
 
 - `GET /health`
 - Catalog: `/products`, `/products/{id}`, `/categories`
-- Properties/rooms/photos
+- Properties/rooms/photos; 3D scene: `/properties/{property_id}/scene`, `/scene/view/{property_id}`; generic native editor shell: `/scene/editor`.
+- Room placement actions: `/rooms/{room_id}/placements` and `/rooms/{room_id}/design-placements` (POST/PATCH/DELETE; ownership is kept separate from design previews).
 - AI: `/ai/chat`, `/ai/analyze-room`, `/ai/recommendations`, `/ai/design-sessions`, `.../generate`, `/ai/capabilities`
 - Renovation: `/renovation/projects`, `/renovation/requests`, `/renovation/estimates`, `/renovation/services`
 - Loyalty: `/loyalty/account`, `/loyalty/transactions`, `/loyalty/rewards`

@@ -176,6 +176,9 @@ class Room(Base, TimestampMixin):
     placements: Mapped[list["RoomPlacement"]] = relationship(
         back_populates="room", cascade="all, delete-orphan"
     )
+    design_placements: Mapped[list["RoomDesignPlacement"]] = relationship(
+        back_populates="room", cascade="all, delete-orphan"
+    )
 
 
 class RoomPhoto(Base, TimestampMixin):
@@ -205,6 +208,23 @@ class RoomPlacement(Base, TimestampMixin):
     rotation_y: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4), nullable=True)
 
     room: Mapped[Room] = relationship(back_populates="placements")
+    product: Mapped[Product] = relationship()
+
+
+class RoomDesignPlacement(Base, TimestampMixin):
+    """Unpurchased catalog products placed in a saved interior-design draft."""
+
+    __tablename__ = "room_design_placements"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    room_id: Mapped[int] = mapped_column(Integer, ForeignKey("rooms.id"), index=True)
+    product_id: Mapped[str] = mapped_column(String(64), ForeignKey("products.id"), index=True)
+    label: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    pos_x: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4), nullable=True)
+    pos_y: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4), nullable=True)
+    pos_z: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4), nullable=True)
+    rotation_y: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4), nullable=True)
+
+    room: Mapped[Room] = relationship(back_populates="design_placements")
     product: Mapped[Product] = relationship()
 
 

@@ -13,10 +13,12 @@ Never commit the large generated vectors or downloaded photographs to Git.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import gzip
 import hashlib
 from io import BytesIO
 import json
+import logging
 from pathlib import Path
 import shutil
 import sqlite3
@@ -30,6 +32,7 @@ from PIL import Image, ImageOps
 
 MODEL = "google/siglip2-base-patch16-224"
 MAX_IMAGE_SIZE = 8 * 1024 * 1024
+MIN_IMAGE_SIDE = 16  # 1x1 pixels and narrow banner images confuse image channel inference.
 Image.MAX_IMAGE_PIXELS = 28_000_000
 
 
@@ -78,6 +81,12 @@ def fetch_product_image(client: httpx.Client, urls_json: str, request_delay: flo
             with Image.open(BytesIO(chunks)) as original:
                 picture = ImageOps.exif_transpose(original).convert("RGB")
                 picture.thumbnail((1024, 1024))
+                if min(picture.size) < MIN_IMAGE_SIDE:
+                    # Product image feeds sometimes return 1x1 placeholders.
+                    # They can crash the SigLIP2 preprocessing step with
+                    # "Cannot handle this data type: (1, 1, 767), |u1".
+                    picture.close()
+                    continue
                 return picture, url
         except (httpx.HTTPError, OSError, ValueError, Image.DecompressionBombError):
             continue
@@ -117,7 +126,9 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
     with tempfile.TemporaryDirectory(prefix="oma_visual_source_") as temp_dir:
         source_db = _catalog_path(source, Path(temp_dir))
         fingerprint = _fingerprint(source_db)
-        with sqlite3.connect(source_db) as catalog:
+        # sqlite3.Connection.__exit__ commits/rolls back but DOES NOT close.
+        # On Windows this otherwise leaves the temporary catalog.db locked.
+        with closing(sqlite3.connect(source_db)) as catalog:
             total = catalog.execute("SELECT COUNT(*) FROM products").fetchone()[0]
             if total < 1:
                 raise ValueError("Source catalog is empty")
@@ -165,24 +176,53 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                 processed = {row[0] for row in metadata.execute("SELECT row_idx FROM indexed_products")}
                 pending: list[tuple[int, str, str, str, str, str, object, Image.Image]] = []
                 missing_count = 0
+                invalid_image_count = 0
 
                 def flush() -> None:
+                    nonlocal invalid_image_count
                     if not pending:
                         return
                     pixels = [row[7] for row in pending]
-                    embeddings = _embed_batch(model, processor, device, pixels)
-                    for row, embedding in zip(pending, embeddings):
-                        vectors[row[0]] = embedding.astype(np.float16)
-                    vectors.flush()  # Persist embeddings before recording rows as complete.
-                    metadata.executemany(
-                        "INSERT OR REPLACE INTO indexed_products VALUES(?,?,?,?,?,?,?)",
-                        [(idx, sku, name, category, brand, image_url, price)
-                         for idx, sku, name, category, brand, image_url, price, _ in pending]
-                    )
-                    metadata.commit()
-                    for picture in pixels:
-                        picture.close()
-                    pending.clear()
+                    try:
+                        accepted = []
+                        try:
+                            embeddings = _embed_batch(model, processor, device, pixels)
+                            accepted = list(zip(pending, embeddings))
+                        except (TypeError, ValueError, OSError) as exc:
+                            # An unexpected malformed image must not abort a
+                            # multi-hour 134k product indexing operation.
+                            logging.warning(
+                                "Batch of %d images failed preprocessing (%s); isolating each image.",
+                                len(pending), exc
+                            )
+                            for product in pending:
+                                try:
+                                    single = _embed_batch(model, processor, device, [product[7]])
+                                    accepted.append((product, single[0]))
+                                except (TypeError, ValueError, OSError) as error:
+                                    invalid_image_count += 1
+                                    logging.warning(
+                                        "Skipping invalid product photo (SKU %s): %s",
+                                        product[1], error
+                                    )
+                            if not accepted:
+                                raise RuntimeError(
+                                    "Every image in the batch failed. Aborting rather than "
+                                    "silently building a zero-product index."
+                                ) from exc
+                        for row, embedding in accepted:
+                            vectors[row[0]] = embedding.astype(np.float16)
+                        vectors.flush()  # Persist embeddings before recording rows as complete.
+                        metadata.executemany(
+                            "INSERT OR REPLACE INTO indexed_products VALUES(?,?,?,?,?,?,?)",
+                            [(idx, sku, name, category, brand, image_url, price)
+                             for (idx, sku, name, category, brand, image_url, price, _), _ in accepted]
+                        )
+                        metadata.commit()
+                    finally:
+                        for picture in pixels:
+                            picture.close()
+                        pending.clear()
 
                 with httpx.Client(timeout=12.0, follow_redirects=True, headers={
                     "User-Agent": "OMA-visual-indexer/1.0"
@@ -221,6 +261,7 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                     **expected, "indexed_count": count,
                     "coverage": round(coverage, 6), "complete": complete,
                     "image_download_failures_this_run": missing_count,
+                    "invalid_image_embeddings_this_run": invalid_image_count,
                 }
                 _write_manifest(manifest_path, summary)
                 return summary

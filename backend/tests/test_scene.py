@@ -168,6 +168,33 @@ def test_same_catalog_item_can_be_placed_more_than_once(client, seeded_products)
     assert all(item["product_id"] == product_id for item in previews)
 
 
+def test_scene_exposes_semantic_product_data_for_3d_preview(client, seeded_products):
+    prop_id, room_id = _new_home(client)
+    product_id = seeded_products[0].id
+
+    added = client.post(
+        f"/api/v1/rooms/{room_id}/design-placements",
+        json={"product_id": product_id, "pos_x": 0.2, "pos_y": 0.005, "pos_z": 0.1},
+    )
+    assert added.status_code == 200, added.text
+
+    scene = client.get(f"/api/v1/properties/{prop_id}/scene").json()
+    item = scene["rooms"][0]["design_products"][0]
+    for field in (
+        "category_id",
+        "category_name",
+        "category_path",
+        "subcategory",
+        "materials",
+        "colors",
+        "width_mm",
+        "height_mm",
+        "depth_mm",
+        "primary_image_url",
+    ):
+        assert field in item
+
+
 def test_generic_editor_route_serves_scene_shell(client):
     response = client.get("/api/v1/scene/editor")
     assert response.status_code == 200

@@ -3,5 +3,5 @@
 # The ordinary demo API can run without them (legacy search fallback).
 -r requirements.txt
 torch>=2.2,<3
-transformers>=4.52,<6
+transformers>=4.52,<5
 sentencepiece>=0.2

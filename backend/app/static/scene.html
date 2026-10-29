@@ -240,6 +240,14 @@ function showToast(message) {
   toastTimeout = setTimeout(()=>toast.classList.remove("show"),2400);
 }
 function setStatus(message) { status.textContent = message; }
+function hasNativeBridge() {
+  return !!(window.OmaRoomBridge && typeof window.OmaRoomBridge.getRoomScene === "function");
+}
+function nativeResult(raw) {
+  const result=typeof raw==="string"?JSON.parse(raw):raw;
+  if(result && result.error)throw new Error(result.error);
+  return result;
+}
 function clamp(value,min,max) { return Math.max(min,Math.min(max,value)); }
 function texture(canvas, repeatX, repeatY) {
   const result = new THREE.CanvasTexture(canvas);
@@ -724,26 +732,36 @@ function raycast(event) {
 async function savePosition(object) {
   const item=object.userData.interaction;
   if(!item || item.kind!=="product" || item.placementId==null)return;
-  const path=item.placementType==="preview"
-    ?"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/design-placements/"+item.placementId
-    :"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/placements/"+item.placementId;
+  const x=Number(object.position.x.toFixed(4)),y=.065;
+  const z=Number(object.position.z.toFixed(4)),rotation=Number(object.rotation.y.toFixed(4));
   try{
-    await api(path,{method:"PATCH",body:JSON.stringify({
-      pos_x:Number(object.position.x.toFixed(4)),pos_y:.065,
-      pos_z:Number(object.position.z.toFixed(4)),rotation_y:Number(object.rotation.y.toFixed(4))
-    })});
+    if(hasNativeBridge()){
+      nativeResult(window.OmaRoomBridge.updatePlacement(
+        String(item.roomId),String(item.placementId),String(item.product.id),x,y,z,rotation
+      ));
+    }else{
+      const path=item.placementType==="preview"
+        ?"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/design-placements/"+item.placementId
+        :"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/placements/"+item.placementId;
+      await api(path,{method:"PATCH",body:JSON.stringify({pos_x:x,pos_y:y,pos_z:z,rotation_y:rotation})});
+    }
     showToast("Расстановка сохранена");
   }catch(error){
     showToast("Не удалось сохранить: "+error.message);
   }
 }
-function removeFromScene(object) {
+async function removeFromScene(object) {
   const item=object && object.userData.interaction;
   if(!item || item.kind!=="product")return;
-  const path=item.placementType==="preview"
-    ?"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/design-placements/"+item.placementId
-    :"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/placements/"+item.placementId;
-  api(path,{method:"DELETE"}).then(()=>{
+  try{
+    if(hasNativeBridge()){
+      nativeResult(window.OmaRoomBridge.deletePlacement(String(item.roomId),String(item.placementId)));
+    }else{
+      const path=item.placementType==="preview"
+        ?"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/design-placements/"+item.placementId
+        :"/api/v1/rooms/"+encodeURIComponent(item.roomId)+"/placements/"+item.placementId;
+      await api(path,{method:"DELETE"});
+    }
     const room=item.room;
     room.items=room.items.filter(entry=>entry!==object);
     const sourceList=item.placementType==="preview" ? (room.info.design_products||[]) : (room.info.products||[]);
@@ -754,7 +772,7 @@ function removeFromScene(object) {
     selectedPlacement=null;panel.style.display="none";
     showToast("Предмет убран из комнаты");
     refreshStatus();
-  }).catch(error=>showToast("Не удалось убрать предмет: "+error.message));
+  }catch(error){showToast("Не удалось убрать предмет: "+error.message);}
 }
 function refreshStatus() {
   const owned=roomGroups.reduce((sum,room)=>sum+(room.info.products||[]).length,0);
@@ -810,7 +828,9 @@ async function loadCatalog(force) {
   catalogList.innerHTML='<div class="empty-state">Загружаем товары ОМА…</div>';
   try{
     const queryPart=query ? "&q="+encodeURIComponent(query) : "";
-    const response=await api("/api/v1/products?page=1&page_size=100&sort=name"+queryPart);
+    const response=hasNativeBridge()
+      ? nativeResult(window.OmaRoomBridge.searchCatalog(query,1,100))
+      : await api("/api/v1/products?page=1&page_size=100&sort=name"+queryPart);
     if(requestId!==catalogRequestSeq)return;
     catalogItems=Array.isArray(response.items)?response.items:[];
     catalogTotal=Number(response.total)||catalogItems.length;
@@ -832,7 +852,9 @@ async function loadMoreCatalog() {
   catalogCount.textContent="Загружаем страницу "+nextPage+"…";
   try{
     const queryPart=query ? "&q="+encodeURIComponent(query) : "";
-    const response=await api("/api/v1/products?page="+nextPage+"&page_size=100&sort=name"+queryPart);
+    const response=hasNativeBridge()
+      ? nativeResult(window.OmaRoomBridge.searchCatalog(query,nextPage,100))
+      : await api("/api/v1/products?page="+nextPage+"&page_size=100&sort=name"+queryPart);
     if(requestId!==catalogRequestSeq||query!==catalogSearch.value.trim())return;
     const incoming=Array.isArray(response.items)?response.items:[];
     const seen=new Set(catalogItems.map(item=>String(item.id)));
@@ -854,9 +876,11 @@ async function addCatalogProduct(product,button) {
   const px=clamp(((idx%3)-1)*.82,-room.w/2+.45,room.w/2-.45);
   const pz=clamp((Math.floor(idx/3)-.5)*.78,-room.d/2+.45,room.d/2-.45);
   try{
-    const placement=await api("/api/v1/rooms/"+encodeURIComponent(room.id)+"/design-placements",{
-      method:"POST",body:JSON.stringify({product_id:String(product.id),pos_x:px,pos_y:.065,pos_z:pz,rotation_y:0})
-    });
+    const placement=hasNativeBridge()
+      ? nativeResult(window.OmaRoomBridge.addPlacement(String(room.id),String(product.id),px,.065,pz,0))
+      : await api("/api/v1/rooms/"+encodeURIComponent(room.id)+"/design-placements",{
+          method:"POST",body:JSON.stringify({product_id:String(product.id),pos_x:px,pos_y:.065,pos_z:pz,rotation_y:0})
+        });
     const sceneItem=Object.assign({},product,{
       product_id:String(product.id),name:productName(product),
       position:{x:px,y:.065,z:pz,rotation_y:0},
@@ -899,7 +923,9 @@ function initRoomItems(home) {
 }
 async function start() {
   try{
-    const home=await api("/api/v1/properties/"+encodeURIComponent(propertyId)+"/scene");
+    const home=hasNativeBridge()
+      ? nativeResult(window.OmaRoomBridge.getRoomScene())
+      : await api("/api/v1/properties/"+encodeURIComponent(propertyId)+"/scene");
     title.textContent=(home.name||"Моё жильё")+" · 3D";
     const rooms=Array.isArray(home.rooms)?home.rooms:[];
     if(!rooms.length){

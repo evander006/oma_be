@@ -1,6 +1,6 @@
 # OMA visual product search — full embedded catalogue
 
-The Android app includes **134,266 real SKUs** from the 2026-10-28 OMA
+The Android app includes **134,187 unique SKUs** from the 2026-10-28 OMA
 export. Its SQLite asset includes SKU, name, category path, brand, price
 snapshot and photo URLs, but **does not include image vectors**.
 
@@ -8,6 +8,31 @@ The old server `/api/v1/visual-search` searches a small demonstration
 catalogue using vision-generated words and basic colour features. The
 new implementation **prefers** a finished image-embedding index from the
 Android export, while keeping the previous endpoint intact as a fallback.
+
+## One-command Windows GPU build
+
+With `oma_front` and `oma_be` cloned next to each other, from PowerShell
+run:
+
+```powershell
+.\\backend\\scripts\\build_index_windows.ps1
+```
+
+This uses a dedicated Python environment, verifies an available NVIDIA CUDA
+runtime, reads the **134,187 SKU SQLite asset** and resumes interrupted runs.
+To select custom locations pass `-Catalog` and `-Output`. If CUDA is not
+detected, it stops rather than unexpectedly starting a very slow CPU run.
+Only for explicit CPU testing use `-AllowCpu`.
+
+The image downloader processes external URLs sequentially with a default
+0.15-second delay between requests. Do not increase concurrency or disable
+rate limiting without confirming acceptable load and authorization from the
+image host. The index build may need significant disk space and external
+model downloads.
+
+A CI smoke test has already demonstrated real SigLIP2 preprocessing and
+768-dimensional encoding on 24/24 product photographs from the actual SQLite
+export. **This is not the complete index or an accuracy benchmark.**
 
 ## Build the index (on a workstation/GPU)
 
@@ -105,3 +130,24 @@ PYTHONPATH=backend python -m pytest -q \
 No PyTorch or live image URLs are necessary for the deterministic unit
 tests. Search and indexing must remain separate from the existing OMA
 design, shopping cart and PDF features.
+
+## Diagnose a zero-result phone request
+
+Once the feature branch is deployed, request `GET /api/v1/visual-search/status`.
+The endpoint reports `ready`, `indexed_products`, `method`, and a
+non-secret readiness reason. If it says `full_catalog_index_not_installed`,
+the device runs the conservative offline label/category fallback instead.
+The Android 0.15.3 screen intentionally offers clarification and a category
+picker rather than pretending that a zero-result classifier is a visual match.
+
+```bash
+PYTHONPATH=backend python backend/scripts/evaluate_full_visual.py \\
+  --index-dir backend/data/visual_index \\
+  --dataset /path/to/labeled-camera-queries.jsonl \\
+  --output visual-search-metrics.json
+```
+
+Benchmark photos should be taken independently of the product photos used for
+indexing, with accurate SKU labels. The metric report includes Top-1,
+Recall@5, no-match false positive rate, p50 and p95. None are claimed to
+have been measured without that dataset.

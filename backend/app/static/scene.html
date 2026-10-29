@@ -480,7 +480,7 @@ function addWallWithOpenings(group,side,w,d,h,roomWallMat,roomAccentMat,doorSide
   const same=hasDoor&&hasWindow;
   const doorW=hasDoor?Math.min(.92,length*.28):0;
   const doorH=hasDoor?Math.min(2.08,h-.12):0;
-  const windowW=hasWindow?Math.min(same?1.45:1.9,length*(same?.42:.48)):0;
+  const windowW=hasWindow?Math.min(same?1.45:1.9,length*(same?0.42:0.48)):0;
   const windowH=hasWindow?Math.min(1.18,h-1.15):0;
   const windowY=hasWindow?Math.min(1.58,h-windowH/2-.12):0;
   const windowCenter=same?-length*.23:0;
@@ -526,8 +526,8 @@ function createRoom(info,index) {
   // Room openings follow the local passport; walls facing the camera stay cut away unless they contain a door/window.
   const doorSide=normalizeWall(info.door_wall,"front");
   const windowSide=normalizeWall(info.window_wall,"back");
-  const wallBack=addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
-  const wallLeft=addWallWithOpenings(group,"left",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
+  addWallWithOpenings(group,"left",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
   const wallRight=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
   const wallFront=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
   const backZ=-d/2,frontZ=d/2;

@@ -1,0 +1,250 @@
+#!/usr/bin/env python3
+"""Build a resumable SigLIP2 image index from the FULL embedded OMA SQLite catalog.
+
+Example (on a GPU workstation):
+  pip install torch transformers sentencepiece httpx numpy Pillow
+  python backend/scripts/build_full_visual_index.py \
+    ../oma_front/android_companion/app/src/main/assets/embedded_catalog.db.bin \
+    --output backend/data/visual_index
+
+Copy the finished directory to the API host and set OMA_VISUAL_INDEX_DIR.
+Never commit the large generated vectors or downloaded photographs to Git.
+"""
+from __future__ import annotations
+
+import argparse
+import gzip
+import hashlib
+from io import BytesIO
+import json
+from pathlib import Path
+import shutil
+import sqlite3
+import tempfile
+from urllib.parse import urlsplit
+
+import httpx
+import numpy as np
+from PIL import Image, ImageOps
+
+MODEL = "google/siglip2-base-patch16-224"
+MAX_IMAGE_SIZE = 8 * 1024 * 1024
+Image.MAX_IMAGE_PIXELS = 28_000_000
+
+
+def _catalog_path(source: Path, temp: Path) -> Path:
+    if source.suffix.lower() not in {".bin", ".gz"}:
+        return source
+    destination = temp / "catalog.db"
+    with gzip.open(source, "rb") as src, destination.open("wb") as dst:
+        shutil.copyfileobj(src, dst, 1024 * 1024)
+    return destination
+
+
+def _fingerprint(file: Path) -> str:
+    digest = hashlib.sha256()
+    with file.open("rb") as src:
+        for chunk in iter(lambda: src.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def fetch_product_image(client: httpx.Client, urls_json: str) -> Image.Image | None:
+    try:
+        urls = json.loads(urls_json)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(urls, list):
+        return None
+    for url in urls[:3]:
+        if not isinstance(url, str):
+            continue
+        parts = urlsplit(url)
+        if parts.scheme != "https" or not parts.hostname or parts.hostname.lower() in {"localhost", "127.0.0.1"}:
+            continue
+        try:
+            chunks = bytearray()
+            with client.stream("GET", url) as response:
+                response.raise_for_status()
+                if int(response.headers.get("content-length", 0)) > MAX_IMAGE_SIZE:
+                    continue
+                for chunk in response.iter_bytes():
+                    chunks.extend(chunk)
+                    if len(chunks) > MAX_IMAGE_SIZE:
+                        break
+            if len(chunks) > MAX_IMAGE_SIZE:
+                continue
+            with Image.open(BytesIO(chunks)) as original:
+                picture = ImageOps.exif_transpose(original).convert("RGB")
+                picture.thumbnail((1024, 1024))
+                return picture
+        except (httpx.HTTPError, OSError, ValueError, Image.DecompressionBombError):
+            continue
+    return None
+
+
+def _embed_batch(model, processor, device: str, images: list[Image.Image]) -> np.ndarray:
+    import torch
+
+    inputs = processor(images=images, return_tensors="pt")
+    inputs = {key: value.to(device) for key, value in inputs.items()}
+    with torch.inference_mode():
+        result = model.get_image_features(**inputs)
+    if not isinstance(result, torch.Tensor):
+        result = getattr(result, "pooler_output", None)
+    if result is None:
+        raise RuntimeError("Vision encoder returned no embedding")
+    matrix = result.detach().float().cpu().numpy()
+    matrix /= np.maximum(np.linalg.norm(matrix, axis=1, keepdims=True), 1e-9)
+    return matrix
+
+
+def _write_manifest(path: Path, data: dict) -> None:
+    temporary = path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(path)
+
+
+def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_coverage: float) -> dict:
+    from transformers import AutoModel, AutoProcessor
+    import torch
+
+    output.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="oma_visual_source_") as temp_dir:
+        source_db = _catalog_path(source, Path(temp_dir))
+        fingerprint = _fingerprint(source_db)
+        with sqlite3.connect(source_db) as catalog:
+            total = catalog.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+            if total < 1:
+                raise ValueError("Source catalog is empty")
+            inspected = min(max_items, total) if max_items else total
+            processor = AutoProcessor.from_pretrained(MODEL)
+            model = AutoModel.from_pretrained(MODEL).eval()
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model.to(device)
+            dimension = int(_embed_batch(
+                model, processor, device, [Image.new("RGB", (224, 224), "white")]
+            ).shape[1])
+            manifest_path = output / "manifest.json"
+            vectors_path = output / "vectors.npy"
+            meta_path = output / "metadata.sqlite"
+            previous = json.loads(manifest_path.read_text("utf-8")) if manifest_path.exists() else None
+            expected = {
+                "model": MODEL,
+                "source_sha256": fingerprint,
+                "catalog_count": total,
+                "dimensions": dimension,
+            }
+            if previous:
+                if any(previous.get(key) != value for key, value in expected.items()):
+                    raise ValueError("Index was created for another model/catalog; use a new output folder")
+                if not vectors_path.exists() or not meta_path.exists():
+                    raise ValueError("Incomplete index files; use a new output folder")
+                vectors = np.load(vectors_path, mmap_mode="r+")
+                if vectors.shape != (total, dimension):
+                    raise ValueError("Index dimensions do not match manifest")
+            else:
+                if vectors_path.exists() or meta_path.exists():
+                    raise ValueError("Existing index missing manifest; use a new output folder")
+                vectors = np.lib.format.open_memmap(
+                    vectors_path, "w+", dtype=np.float16, shape=(total, dimension)
+                )
+                _write_manifest(manifest_path, {**expected, "indexed_count": 0, "complete": False})
+            metadata = sqlite3.connect(meta_path)
+            try:
+                metadata.execute(
+                    "CREATE TABLE IF NOT EXISTS indexed_products("
+                    "row_idx INTEGER PRIMARY KEY, sku TEXT UNIQUE NOT NULL, name TEXT NOT NULL,"
+                    "category_path TEXT NOT NULL, brand TEXT NOT NULL, image_url TEXT NOT NULL,"
+                    "price REAL)"
+                )
+                processed = {row[0] for row in metadata.execute("SELECT row_idx FROM indexed_products")}
+                pending: list[tuple[int, str, str, str, str, str, object, Image.Image]] = []
+
+                def flush() -> None:
+                    if not pending:
+                        return
+                    pixels = [row[7] for row in pending]
+                    embeddings = _embed_batch(model, processor, device, pixels)
+                    for row, embedding in zip(pending, embeddings):
+                        vectors[row[0]] = embedding.astype(np.float16)
+                    vectors.flush()  # Persist embeddings before recording rows as complete.
+                    metadata.executemany(
+                        "INSERT OR REPLACE INTO indexed_products VALUES(?,?,?,?,?,?,?)",
+                        [(idx, sku, name, category, brand, image_url, price)
+                         for idx, sku, name, category, brand, image_url, price, _ in pending]
+                    )
+                    metadata.commit()
+                    for picture in pixels:
+                        picture.close()
+                    pending.clear()
+
+                with httpx.Client(timeout=12.0, follow_redirects=True, headers={
+                    "User-Agent": "OMA-visual-indexer/1.0"
+                }) as client:
+                    cursor = catalog.execute(
+                        "SELECT sku,name,category_path,brand,image_urls,price "
+                        "FROM products ORDER BY sku"
+                    )
+                    for idx, (sku, name, category, brand, urls, price) in enumerate(cursor):
+                        if idx >= inspected:
+                            break
+                        if idx in processed:
+                            continue
+                        picture = fetch_product_image(client, urls)
+                        if picture is None:
+                            continue
+                        try:
+                            image_url = next(
+                                (url for url in json.loads(urls) if isinstance(url, str)
+                                 and url.startswith("https://")), ""
+                            )
+                        except (ValueError, TypeError):
+                            image_url = ""
+                        try:
+                            numeric_price = float(price) if price is not None else None
+                        except (ValueError, TypeError):
+                            numeric_price = None
+                        pending.append((idx, str(sku), str(name), str(category), str(brand or ""),
+                                        image_url, numeric_price, picture))
+                        if len(pending) >= batch_size:
+                            flush()
+                        if (idx + 1) % 1000 == 0:
+                            count = metadata.execute("SELECT COUNT(*) FROM indexed_products").fetchone()[0]
+                            print(f"Scanned {idx + 1}/{inspected}: embedded {count}", flush=True)
+                    flush()
+
+                count = metadata.execute("SELECT COUNT(*) FROM indexed_products").fetchone()[0]
+                coverage = count / total
+                complete = inspected == total and coverage >= minimum_coverage
+                summary = {
+                    **expected, "indexed_count": count,
+                    "coverage": round(coverage, 6), "complete": complete,
+                }
+                _write_manifest(manifest_path, summary)
+                return summary
+            finally:
+                metadata.close()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("source", type=Path, help="embedded_catalog.db.bin or catalog.db")
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--batch-size", type=int, default=12)
+    parser.add_argument("--max-items", type=int, default=0, help="Smoke-test only; index remains incomplete")
+    parser.add_argument("--minimum-coverage", type=float, default=0.80)
+    args = parser.parse_args()
+    if args.batch_size < 1 or args.batch_size > 64:
+        parser.error("--batch-size must be in 1..64")
+    if args.max_items < 0 or not 0 < args.minimum_coverage <= 1:
+        parser.error("Invalid item limit or coverage")
+    summary = build(args.source.resolve(), args.output.resolve(),
+                    args.batch_size, args.max_items, args.minimum_coverage)
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    if not summary["complete"]:
+        print("Index is not deployable yet. Retry indexing missing images or raise coverage.")
+
+
+if __name__ == "__main__":
+    main()

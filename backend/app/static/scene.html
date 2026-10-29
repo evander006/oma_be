@@ -669,7 +669,6 @@ function getProductDims(item) {
   return dims;
 }
 function materialForProduct(item, defaultColor, finish) {
-  const text=(productText(item)+" "+String(item.color||"")).toLowerCase();
   const palette=[
     [/бел|white|ivory|слоновая кость/,0xe8e5dd],
     [/черн|black|графит/,0x34383a],
@@ -682,8 +681,11 @@ function materialForProduct(item, defaultColor, finish) {
     [/крас|red|бордов/,0x9b5148],
     [/золот|gold|латун/,0xb69a5b]
   ];
+  const text=finish==="wood" || finish==="metal"
+    ? String(item.materials||"")+" "+String(item.colors||"")
+    : String(item.colors||"")+" "+productName(item);
   let color=null;
-  for(const entry of palette){if(entry[0].test(text)){color=entry[1];break;}}
+  for(const entry of palette){if(entry[0].test(text.toLowerCase())){color=entry[1];break;}}
   if(finish==="wood"){
     return new THREE.MeshStandardMaterial({
       color:color===null?0xffffff:color,map:woodTexture,roughness:.67,metalness:0
@@ -692,11 +694,6 @@ function materialForProduct(item, defaultColor, finish) {
   if(finish==="metal"){
     return new THREE.MeshStandardMaterial({
       color:color===null?0x858b8e:color,metalness:.72,roughness:.27
-    });
-  }
-  if(finish==="ceramic"){
-    return new THREE.MeshStandardMaterial({
-      color:color===null?0xe7e5df:color,roughness:.24,metalness:0
     });
   }
   return new THREE.MeshStandardMaterial({
@@ -765,7 +762,7 @@ function buildProceduralFurniture(group,item) {
   const wood=materialForProduct(item,0x9a7a5c,"wood");
   const upholstery=materialForProduct(item,0x9ca3a5,"fabric");
   const dark=new THREE.MeshStandardMaterial({color:0x4e4740,roughness:.58});
-  const white=materialForProduct(item,0xe7e5df,"ceramic");
+  const white=new THREE.MeshStandardMaterial({color:0xe7e5df,roughness:.24,metalness:0});
   const metal=materialForProduct(item,0x858b8e,"metal");
   const topMat=new THREE.MeshStandardMaterial({color:0xd0c1ac,roughness:.31,metalness:0});
   const panelMat=new THREE.MeshStandardMaterial({color:0xc8c4bc,roughness:.49,metalness:0});

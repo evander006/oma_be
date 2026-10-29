@@ -13,10 +13,13 @@ Never commit the large generated vectors or downloaded photographs to Git.
 from __future__ import annotations
 
 import argparse
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 import gzip
 import hashlib
 from io import BytesIO
+from itertools import islice
 import json
 import logging
 from pathlib import Path
@@ -24,6 +27,7 @@ import shutil
 import sqlite3
 import tempfile
 import time
+from threading import Lock
 from urllib.parse import urlsplit
 
 import httpx
@@ -53,7 +57,30 @@ def _fingerprint(file: Path) -> str:
     return digest.hexdigest()
 
 
-def fetch_product_image(client: httpx.Client, urls_json: str, request_delay: float = 0.15) -> tuple[Image.Image, str] | None:
+class _DownloadRateGate:
+    """Share a conservative request rate across all download workers."""
+
+    def __init__(self, minimum_spacing: float):
+        self.minimum_spacing = minimum_spacing
+        self._lock = Lock()
+        self._next = 0.0
+
+    def wait(self) -> None:
+        if self.minimum_spacing <= 0:
+            return
+        with self._lock:
+            now = time.monotonic()
+            allowed_at = max(self._next, now)
+            self._next = allowed_at + self.minimum_spacing
+            delay = max(0.0, allowed_at - now)
+        if delay:
+            time.sleep(delay)
+
+
+def fetch_product_image(
+    client: httpx.Client, urls_json: str, request_delay: float = 0.15,
+    request_gate: _DownloadRateGate | None = None,
+) -> tuple[Image.Image, str] | None:
     try:
         urls = json.loads(urls_json)
     except (TypeError, ValueError):
@@ -67,6 +94,8 @@ def fetch_product_image(client: httpx.Client, urls_json: str, request_delay: flo
         if parts.scheme != "https" or not parts.hostname or parts.hostname.lower() in {"localhost", "127.0.0.1"}:
             continue
         try:
+            if request_gate is not None:
+                request_gate.wait()
             chunks = bytearray()
             with client.stream("GET", url) as response:
                 response.raise_for_status()
@@ -91,9 +120,39 @@ def fetch_product_image(client: httpx.Client, urls_json: str, request_delay: flo
         except (httpx.HTTPError, OSError, ValueError, Image.DecompressionBombError):
             continue
         finally:
-            if request_delay > 0:
+            if request_gate is None and request_delay > 0:
                 time.sleep(request_delay)
     return None
+
+
+def _prefetched_images(client, source_rows, workers: int, request_delay: float):
+    """Yield bounded, ordered downloads while overlapping network latency.
+
+    No more than 2 * workers futures are in memory. Embeddings and database
+    writes stay single-threaded, preserving crash-safe checkpoints.
+    """
+    if workers == 1:
+        for row in source_rows:
+            yield row, fetch_product_image(client, row[1][4], request_delay=request_delay)
+        return
+
+    gate = _DownloadRateGate(request_delay)
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="oma-photo") as pool:
+        queued = deque()
+
+        def get_photo(row):
+            return fetch_product_image(
+                client, row[1][4], request_delay=request_delay, request_gate=gate
+            )
+
+        for row in source_rows:
+            queued.append((row, pool.submit(get_photo, row)))
+            if len(queued) >= workers * 2:
+                queued_row, future = queued.popleft()
+                yield queued_row, future.result()
+        while queued:
+            queued_row, future = queued.popleft()
+            yield queued_row, future.result()
 
 
 def _embed_batch(model, processor, device: str, images: list[Image.Image]) -> np.ndarray:
@@ -118,7 +177,11 @@ def _write_manifest(path: Path, data: dict) -> None:
     temporary.replace(path)
 
 
-def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_coverage: float, request_delay: float = 0.15) -> dict:
+def build(
+    source: Path, output: Path, batch_size: int, max_items: int,
+    minimum_coverage: float, request_delay: float = 0.15,
+    download_workers: int = 1,
+) -> dict:
     from transformers import AutoModel, AutoProcessor
     import torch
 
@@ -231,12 +294,14 @@ def build(source: Path, output: Path, batch_size: int, max_items: int, minimum_c
                         "SELECT sku,name,category_path,brand,image_urls,price "
                         "FROM products ORDER BY sku"
                     )
-                    for idx, (sku, name, category, brand, urls, price) in enumerate(cursor):
-                        if idx >= inspected:
-                            break
-                        if idx in processed:
-                            continue
-                        downloaded = fetch_product_image(client, urls, request_delay=request_delay)
+                    remaining = (
+                        (idx, item)
+                        for idx, item in enumerate(islice(cursor, inspected))
+                        if idx not in processed
+                    )
+                    for (idx, (sku, name, category, brand, urls, price)), downloaded in (
+                        _prefetched_images(client, remaining, download_workers, request_delay)
+                    ):
                         if downloaded is None:
                             missing_count += 1
                             continue
@@ -276,14 +341,20 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=12)
     parser.add_argument("--max-items", type=int, default=0, help="Smoke-test only; index remains incomplete")
     parser.add_argument("--minimum-coverage", type=float, default=0.80)
-    parser.add_argument("--request-delay", type=float, default=0.15, help="Seconds between attempts to avoid overloading OMA photo hosting")
+    parser.add_argument("--request-delay", type=float, default=0.15, help="Minimum gap between photo requests across workers (seconds)")
+    parser.add_argument("--download-workers", type=int, default=1, help="Network-only parallel photo downloads, range 1..4")
     args = parser.parse_args()
     if args.batch_size < 1 or args.batch_size > 64:
         parser.error("--batch-size must be in 1..64")
     if args.max_items < 0 or not 0 < args.minimum_coverage <= 1 or args.request_delay < 0:
         parser.error("Invalid item limit or coverage")
+    if args.download_workers not in (1, 2, 3, 4):
+        parser.error("--download-workers must be in 1..4")
+    if args.download_workers > 1 and args.request_delay < 0.25:
+        parser.error("Parallel photo downloads require --request-delay >= 0.25 (max 4 requests/sec)")
     summary = build(args.source.resolve(), args.output.resolve(),
-                    args.batch_size, args.max_items, args.minimum_coverage, args.request_delay)
+                    args.batch_size, args.max_items, args.minimum_coverage,
+                    args.request_delay, args.download_workers)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if not summary["complete"]:
         print("Index is not deployable yet. Retry indexing missing images or raise coverage.")

@@ -103,6 +103,7 @@ small{font-size:11px;line-height:1.45;display:block;color:#607482}
   <div class="toolbar-controls">
     <label for="room-select">Редактируемая комната</label>
     <select id="room-select" aria-label="Выберите комнату"><option value="">Загрузка…</option></select>
+    <button id="view-toggle" type="button">План квартиры</button>
   </div>
 </section>
 <div class="actions">
@@ -145,6 +146,7 @@ const detailTitle = document.getElementById("detail-title");
 const detailBody = document.getElementById("detail-body");
 const detailNote = document.getElementById("detail-note");
 const roomSelect = document.getElementById("room-select");
+const viewToggle = document.getElementById("view-toggle");
 const catalogPanel = document.getElementById("catalog-panel");
 const catalogList = document.getElementById("catalog-list");
 const catalogSearch = document.getElementById("catalog-search");
@@ -205,6 +207,7 @@ const roomGroups = [];
 let catalogItems = [];
 let selectedRoom = null;
 let selectedPlacement = null;
+let roomViewMode = "interior";
 let allBounds = new THREE.Box3();
 let catalogLoaded = false;
 let catalogPage = 1;
@@ -468,13 +471,16 @@ function addDoorDetails(group,side,w,d,doorCenter,doorW,doorH,wallCoord,inward) 
     sphere(group,.025,.035,.025,face+inward*.075,Math.min(.98,doorH*.48),doorCenter+doorW*.30,metalMat);
   }
 }
-function addWallWithOpenings(group,side,w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide) {
+function addWallWithOpenings(parent,side,w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,forceFullHeight) {
+  const wallGroup=new THREE.Group();
+  wallGroup.userData.wallSide=side;
+  parent.add(wallGroup);
   const horizontal=side==="back"||side==="front";
   const length=horizontal?w:d;
   const wallCoord=wallCoordinate(side,w,d);
   const inward=wallInward(side);
   const hasDoor=doorSide===side,hasWindow=windowSide===side;
-  const cutaway=(side==="front"||side==="right")&&!hasWindow;
+  const cutaway=!forceFullHeight&&(side==="front"||side==="right")&&!hasWindow;
   const wallHeight=cutaway?1.02:h;
   const wallMat=(side==="front"||side==="right")?roomAccentMat:roomWallMat;
   const same=hasDoor&&hasWindow;
@@ -492,24 +498,24 @@ function addWallWithOpenings(group,side,w,d,h,roomWallMat,roomAccentMat,doorSide
   let cursor=-length/2;
   for(const opening of openings){
     const gap=opening.start-cursor;
-    if(gap>.02)wallPanel(group,side,cursor+gap/2,gap,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
+    if(gap>.02)wallPanel(wallGroup,side,cursor+gap/2,gap,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
     if(opening.kind==="window"){
       const bottomH=Math.max(.08,windowY-windowH/2);
       const topY=windowY+windowH/2;
       const topH=Math.max(0,wallHeight-topY);
-      wallPanel(group,side,opening.center,windowW,bottomH/2,bottomH,wallCoord,wallMat,w,d);
-      if(topH>.02)wallPanel(group,side,opening.center,windowW,topY+topH/2,topH,wallCoord,wallMat,w,d);
+      wallPanel(wallGroup,side,opening.center,windowW,bottomH/2,bottomH,wallCoord,wallMat,w,d);
+      if(topH>.02)wallPanel(wallGroup,side,opening.center,windowW,topY+topH/2,topH,wallCoord,wallMat,w,d);
     }else{
       const lintelH=Math.max(0,wallHeight-doorH);
-      if(lintelH>.02)wallPanel(group,side,opening.center,doorW,doorH+lintelH/2,lintelH,wallCoord,wallMat,w,d);
+      if(lintelH>.02)wallPanel(wallGroup,side,opening.center,doorW,doorH+lintelH/2,lintelH,wallCoord,wallMat,w,d);
     }
     cursor=opening.end;
   }
   const tail=length/2-cursor;
-  if(tail>.02)wallPanel(group,side,cursor+tail/2,tail,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
-  if(hasWindow)addWindowDetails(group,side,w,d,windowCenter,windowW,windowY,windowH,wallCoord,inward);
-  if(hasDoor)addDoorDetails(group,side,w,d,doorCenter,doorW,doorH,wallCoord,inward);
-  return {cutaway:cutaway,wallHeight:wallHeight};
+  if(tail>.02)wallPanel(wallGroup,side,cursor+tail/2,tail,wallHeight/2,wallHeight,wallCoord,wallMat,w,d);
+  if(hasWindow)addWindowDetails(wallGroup,side,w,d,windowCenter,windowW,windowY,windowH,wallCoord,inward);
+  if(hasDoor)addDoorDetails(wallGroup,side,w,d,doorCenter,doorW,doorH,wallCoord,inward);
+  return {cutaway:cutaway,wallHeight:wallHeight,group:wallGroup,hasWindow:hasWindow};
 }
 function createRoom(info,index) {
   const w=clamp(Number(info.width_m)||3.8,2.7,9);
@@ -523,28 +529,48 @@ function createRoom(info,index) {
   const floor=box(group,w,.13,d,0,-.07,0,floorMaterial(info,w,d),false);
   floor.userData.interaction={kind:"room",roomId:String(info.id),name:info.name,confirmed:!!info.dimensions_confirmed};
   clickables.push(floor);
-  // Room openings follow the local passport; walls facing the camera stay cut away unless they contain a door/window.
   const doorSide=normalizeWall(info.door_wall,"front");
   const windowSide=normalizeWall(info.window_wall,"back");
-  addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
-  addWallWithOpenings(group,"left",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
-  const wallRight=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
-  const wallFront=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide);
-  const backZ=-d/2,frontZ=d/2;
-  const frontTop=wallFront.wallHeight,rightTop=wallRight.wallHeight;
-  box(group,w,.055,.18,0,frontTop+.03,frontZ,trimMat,false);
-  box(group,.18,.055,d,w/2,rightTop+.03,0,trimMat,false);
-  box(group,w,.10,.055,0,.055,backZ+.10,trimMat,false);
+  const wallBack=addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+  const wallLeft=addWallWithOpenings(group,"left",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+  let wallFrontCut=null,wallFrontFull,wallRightCut=null,wallRightFull;
+  if(windowSide==="front"){
+    wallFrontFull=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+  }else{
+    wallFrontCut=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,false);
+    wallFrontFull=addWallWithOpenings(group,"front",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+    wallFrontFull.group.visible=false;
+    box(wallFrontCut.group,w,.055,.18,0,wallFrontCut.wallHeight+.03,d/2,trimMat,false);
+  }
+  if(windowSide==="right"){
+    wallRightFull=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+  }else{
+    wallRightCut=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,false);
+    wallRightFull=addWallWithOpenings(group,"right",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
+    wallRightFull.group.visible=false;
+    box(wallRightCut.group,.18,.055,d,w/2,wallRightCut.wallHeight+.03,0,trimMat,false);
+  }
+  box(group,w,.10,.055,0,.055,-d/2+.10,trimMat,false);
   box(group,.10,.10,d,-w/2+.08,.055,0,trimMat,false);
   box(group,.10,.10,d,w/2-.08,.055,0,trimMat,false);
-  // Subtle ceiling light fixture; the open ceiling keeps the scene inspectable.
   cylinder(group,.12,.15,.07,0,h-.08,0,metalMat,24);
   sphere(group,.10,.07,.10,0,h-.18,0,bulbMat);
   const roomLight=new THREE.PointLight(0xffedce,.38,Math.max(w,d)*1.25,2);
   roomLight.position.set(0,h-.26,0);group.add(roomLight);
   const label=roomLabel(info.name || "Комната");
   label.position.set(-w/2+.75,h+.16,-d/2+.2);group.add(label);
-  const room={id:String(info.id),info:info,group:group,x:x,z:z,w:w,d:d,h:h,items:[],floor:floor};
+  const room={
+    id:String(info.id),info:info,group:group,x:x,z:z,w:w,d:d,h:h,items:[],floor:floor,
+    walls:{
+      frontCut:wallFrontCut&&wallFrontCut.group,
+      frontFull:wallFrontFull.group,
+      frontAlways:!wallFrontCut,
+      rightCut:wallRightCut&&wallRightCut.group,
+      rightFull:wallRightFull.group,
+      rightAlways:!wallRightCut,
+      back:wallBack.group,left:wallLeft.group
+    }
+  };
   roomGroups.push(room);
   allBounds.expandByObject(floor);
   return room;
@@ -556,15 +582,45 @@ function setSelectedRoom(room) {
   roomSelect.value=room.id;
   focusRoom(room,false);
 }
+function setRoomViewMode(mode) {
+  roomViewMode=mode==="interior"?"interior":"cutaway";
+  roomGroups.forEach(room=>{
+    const walls=room.walls||{};
+    if(walls.frontCut && walls.frontFull && walls.frontCut!==walls.frontFull){
+      walls.frontCut.visible=roomViewMode==="cutaway";
+      walls.frontFull.visible=roomViewMode==="interior";
+    }else if(walls.frontFull){
+      walls.frontFull.visible=true;
+    }
+    if(walls.rightCut && walls.rightFull && walls.rightCut!==walls.rightFull){
+      walls.rightCut.visible=roomViewMode==="cutaway";
+      walls.rightFull.visible=roomViewMode==="interior";
+    }else if(walls.rightFull){
+      walls.rightFull.visible=true;
+    }
+  });
+  controls.maxPolarAngle=roomViewMode==="interior"?Math.PI*.70:Math.PI/2.02;
+  viewToggle.textContent=roomViewMode==="interior"?"План квартиры":"Вид изнутри";
+  viewToggle.setAttribute("aria-pressed",String(roomViewMode==="interior"));
+}
 function focusRoom(room,animate) {
   if(!room)return;
   const span=Math.max(room.w,room.d,3.5);
-  controls.target.set(room.x,0.7,room.z);
-  camera.position.set(room.x+span*.88,span*.72+2.2,room.z+span*.98);
+  if(roomViewMode==="interior"){
+    controls.target.set(room.x,1.22,room.z-room.d*.20);
+    camera.position.set(room.x,1.58,room.z+room.d*.31);
+  }else{
+    controls.target.set(room.x,0.7,room.z);
+    camera.position.set(room.x+span*.88,span*.72+2.2,room.z+span*.98);
+  }
   controls.update();
   if(animate)showToast("Комната: "+room.info.name);
 }
 function centerHome() {
+  if(roomViewMode==="interior" && selectedRoom){
+    focusRoom(selectedRoom,false);
+    return;
+  }
   if(allBounds.isEmpty())return;
   const center=allBounds.getCenter(new THREE.Vector3());
   const size=allBounds.getSize(new THREE.Vector3());
@@ -1290,14 +1346,26 @@ async function start() {
     populateRoomSelect();
     initRoomItems(home);
     refreshStatus();
-    centerHome();
+    setRoomViewMode(roomViewMode);
     if(focusRoomId&&findRoom(focusRoomId))focusRoom(findRoom(focusRoomId),false);
+    else if(selectedRoom)focusRoom(selectedRoom,false);
+    else centerHome();
     setStatus(status.textContent+" · Размеры без замеров приблизительны");
   }catch(error){
     setStatus("Не удалось загрузить 3D-квартиру: "+error.message);
   }
 }
-document.getElementById("reset").addEventListener("click",()=>{centerHome();panel.style.display="none";});
+document.getElementById("reset").addEventListener("click",()=>{
+  setRoomViewMode("cutaway");
+  centerHome();
+  panel.style.display="none";
+});
+viewToggle.addEventListener("click",()=>{
+  const next=roomViewMode==="interior"?"cutaway":"interior";
+  setRoomViewMode(next);
+  if(next==="interior"&&selectedRoom)focusRoom(selectedRoom,false);
+  else centerHome();
+});
 document.getElementById("catalog-toggle").addEventListener("click",()=>{
   catalogPanel.classList.toggle("open");
   if(catalogPanel.classList.contains("open")){panel.style.display="none";loadCatalog(false);}

@@ -22,7 +22,7 @@ from app.db.models import Product
 from app.db.session import get_db
 from app.services.ai_provider import AIImagePart, AIProviderError, get_ai_provider
 from app.services.asset_urls import resolve_product_image_path, serialize_product
-from app.services.full_catalog_visual import search_full_catalog
+from app.services.full_catalog_visual import index_status, search_full_catalog
 
 router = APIRouter(tags=["visual-search"])
 Image.MAX_IMAGE_PIXELS = 28_000_000
@@ -139,6 +139,12 @@ def _match_text(product: Product, terms: list[str]) -> int:
             if stem in haystack:
                 score += 2
     return score
+
+
+@router.get("/visual-search/status")
+def visual_search_status() -> dict:
+    """Readiness of the optional full-catalogue image index."""
+    return index_status(get_settings().data_dir)
 
 
 @router.post("/visual-search")

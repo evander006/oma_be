@@ -22,4 +22,4 @@ jobs:
       - name: Compile Python
         run: python -m compileall -q backend/app backend/scripts
       - name: Run visual search unit and regression tests
-        run: PYTHONPATH=backend python -m pytest -q backend/tests/test_visual_search.py backend/tests/test_full_catalog_visual.py backend/tests/test_visual_benchmark.py backend/tests/test_visual_index_builder.py backend/tests/test_partial_visual_preview.py
+        run: PYTHONPATH=backend python -m pytest -q backend/tests/test_visual_search.py backend/tests/test_full_catalog_visual.py backend/tests/test_visual_benchmark.py backend/tests/test_visual_index_builder.py backend/tests/test_partial_visual_preview.py backend/tests/test_partial_visual_api.py

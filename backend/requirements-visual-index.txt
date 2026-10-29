@@ -1,0 +1,7 @@
+# Optional packages for image-embedding indexing and query inference.
+# Install on the indexing GPU machine, and on the image-search service.
+# The ordinary demo API can run without them (legacy search fallback).
+-r requirements.txt
+torch>=2.2,<3
+transformers>=4.52,<6
+sentencepiece>=0.2

@@ -721,8 +721,15 @@ function addFurnitureLegs(parent,w,legH,d,material,count) {
 function buildGenericCatalogPreview(group,item,w,h,d,wood,metal) {
   const plinthH=Math.max(.035,Math.min(.075,h*.11));
   rounded(group,w*.82,plinthH,d*.82,0,plinthH/2,0,wood,.012);
-  const imageUrl=item.primary_image_url||item.image_url||item.image||"";
-  if(typeof imageUrl==="string" && /^https?:\/\//i.test(imageUrl)){
+  let imageUrl=item.primary_image_url||item.image_url||item.image||"";
+  if((!/^https?:\/\//i.test(imageUrl)) && hasNativeBridge() &&
+      typeof window.OmaRoomBridge.getCatalogImage==="function" && (item.id||item.product_id)){
+    try{
+      const localImage=nativeResult(window.OmaRoomBridge.getCatalogImage(String(item.id||item.product_id)));
+      imageUrl=localImage.url||localImage.data_url||"";
+    }catch(_){}
+  }
+  if(typeof imageUrl==="string" && /^(https?:\/\/|data:image\/)/i.test(imageUrl)){
     const imageLoader=new THREE.TextureLoader();
     imageLoader.setCrossOrigin("anonymous");
     imageLoader.load(imageUrl,texture=>{
@@ -1027,7 +1034,8 @@ function makeProductObject(room,item,placement) {
     placementType:(placement && placement.placement_type) || item.placement_type || (item.is_preview ? "preview" : "owned"),
     isDemo:!!item.is_demo,
     isPreview:!!item.is_preview || !!(placement && placement.is_preview),
-    modelLimitations:item.model_limitations || (product.model_3d && product.model_3d.limitations) || null,
+    modelLimitations:item.model_limitations || (product.model_3d && product.model_3d.limitations) ||
+      (classifyProduct(product)==="generic" ? "Для этого товара пока нет подходящей 3D-модели; показан каталоговый предпросмотр." : null),
     room:room
   };
   const exact=product.model_3d && product.model_3d.source==="manufacturer_exact" && product.model_3d.url;

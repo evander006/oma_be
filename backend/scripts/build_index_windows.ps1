@@ -4,6 +4,7 @@ param(
     [string]$Catalog = "",
     [string]$Output = "",
     [int]$BatchSize = 12,
+    [int]$DownloadWorkers = 1,
     [double]$RequestDelay = 0.15,
     [switch]$AllowCpu
 )
@@ -24,6 +25,12 @@ if ($BatchSize -lt 1 -or $BatchSize -gt 64) {
 }
 if ($RequestDelay -lt 0) {
     throw "RequestDelay must be non-negative"
+}
+if ($DownloadWorkers -lt 1 -or $DownloadWorkers -gt 4) {
+    throw "DownloadWorkers must be in 1..4"
+}
+if ($DownloadWorkers -gt 1 -and $RequestDelay -lt 0.25) {
+    throw "To protect OMA photo hosting, concurrent downloads require RequestDelay >= 0.25"
 }
 
 $venv = Join-Path $repoRoot ".venv-vision"
@@ -52,7 +59,8 @@ $env:HF_HUB_DISABLE_TELEMETRY = "1"
 Write-Host "Encoding OMA catalogue. Interrupt/restart safely with identical arguments."
 Write-Host "Output: $Output"
 & $python (Join-Path $repoRoot "backend/scripts/build_full_visual_index.py") `
-    $Catalog --output $Output --batch-size $BatchSize --request-delay $RequestDelay
+    $Catalog --output $Output --batch-size $BatchSize --request-delay $RequestDelay `
+    --download-workers $DownloadWorkers
 if ($LASTEXITCODE -ne 0) { throw "Visual index build did not complete" }
 
 $manifestPath = Join-Path $Output "manifest.json"

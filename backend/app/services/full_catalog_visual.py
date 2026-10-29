@@ -144,6 +144,58 @@ def rank_rows(
     return matches
 
 
+def index_status(data_dir: Path) -> dict:
+    """Public, credential-free diagnostics for photo-search readiness."""
+    directory = index_directory(data_dir)
+    manifest_path = directory / "manifest.json"
+    vectors_path = directory / "vectors.npy"
+    metadata_path = directory / "metadata.sqlite"
+    files_present = all(p.is_file() for p in (manifest_path, vectors_path, metadata_path))
+    if not files_present:
+        return {
+            "ready": False, "method": "legacy_category_or_color",
+            "reason": "full_catalog_index_not_installed",
+            "indexed_products": 0,
+        }
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        count = int(manifest.get("indexed_count", 0))
+        complete = manifest.get("complete") is True
+        model_ok = manifest.get("model") == DEFAULT_MODEL
+        dims = int(manifest.get("dimensions", 0))
+        vectors = np.load(vectors_path, mmap_mode="r", allow_pickle=False)
+        valid = (
+            complete and model_ok and count > 0 and dims > 0
+            and vectors.ndim == 2
+            and vectors.shape == (int(manifest.get("catalog_count", 0)), dims)
+        )
+        # Report both index readiness and optional model availability.
+        # Never expose host file paths or secret configuration values.
+        try:
+            import torch  # noqa: F401
+            import transformers  # noqa: F401
+            runtime_present = True
+        except ImportError:
+            runtime_present = False
+        return {
+            "ready": bool(valid and runtime_present),
+            "method": "siglip2_catalog_embeddings" if valid else "legacy_category_or_color",
+            "reason": (
+                "ok" if valid and runtime_present else
+                "model_dependencies_missing" if valid else
+                "index_incomplete_or_invalid"
+            ),
+            "indexed_products": count,
+            "catalog_products": int(manifest.get("catalog_count", 0)),
+            "coverage": manifest.get("coverage"),
+        }
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return {
+            "ready": False, "method": "legacy_category_or_color",
+            "reason": "index_unreadable", "indexed_products": 0,
+        }
+
+
 def search_full_catalog(photo: bytes, terms: list[str], data_dir: Path) -> dict | None:
     """Return None only when the index is not available/usable.
 

@@ -205,7 +205,7 @@ let catalogRequestSeq = 0;
 let catalogSearchTimer = null;
 let toastTimeout = null;
 let dragState = null;
-let lastPointer = {x:0,y:0};
+let tapState = null;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const dragPlane = new THREE.Plane(new THREE.Vector3(0,1,0),-.065);
@@ -904,10 +904,9 @@ document.getElementById("rotate").addEventListener("click",()=>{
 document.getElementById("remove").addEventListener("click",()=>{if(selectedPlacement)removeFromScene(selectedPlacement);});
 
 renderer.domElement.addEventListener("pointerdown",event=>{
-  lastPointer={x:event.clientX,y:event.clientY};
   const hits=raycast(event);
-  if(!hits.length)return;
-  const object=findInteractive(hits[0].object);
+  const object=hits.length?findInteractive(hits[0].object):null;
+  tapState={object:object,startX:event.clientX,startY:event.clientY,moved:false};
   if(!object||object.userData.interaction.kind!=="product")return;
   const item=object.userData.interaction;
   if(item.placementId==null)return;
@@ -916,6 +915,7 @@ renderer.domElement.addEventListener("pointerdown",event=>{
   try{renderer.domElement.setPointerCapture(event.pointerId);}catch(_){}
 });
 renderer.domElement.addEventListener("pointermove",event=>{
+  if(tapState && Math.hypot(event.clientX-tapState.startX,event.clientY-tapState.startY)>4)tapState.moved=true;
   if(!dragState)return;
   if(Math.hypot(event.clientX-dragState.startX,event.clientY-dragState.startY)>3)dragState.moved=true;
   if(!dragState.moved)return;
@@ -930,15 +930,16 @@ renderer.domElement.addEventListener("pointermove",event=>{
   }
 });
 renderer.domElement.addEventListener("pointerup",event=>{
-  if(!dragState)return;
-  const state=dragState;dragState=null;controls.enabled=true;
-  if(state.moved){selectedPlacement=state.object;selectPlacement(state.object);savePosition(state.object);}
-  else{
-    const hits=raycast(event);
-    if(hits.length){const object=findInteractive(hits[0].object);if(object)selectPlacement(object);}
+  const tap=tapState;tapState=null;
+  if(dragState){
+    const state=dragState;dragState=null;controls.enabled=true;
+    if(state.moved){selectedPlacement=state.object;selectPlacement(state.object);savePosition(state.object);}
+    else if(tap && tap.object)selectPlacement(tap.object);
+    return;
   }
+  if(tap && !tap.moved && tap.object)selectPlacement(tap.object);
 });
-renderer.domElement.addEventListener("pointercancel",()=>{dragState=null;controls.enabled=true;});
+renderer.domElement.addEventListener("pointercancel",()=>{dragState=null;tapState=null;controls.enabled=true;});
 function resize(){
   const w=stage.clientWidth,h=stage.clientHeight;
   camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();renderer.setSize(w,h,false);

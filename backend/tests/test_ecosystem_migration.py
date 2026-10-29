@@ -40,6 +40,8 @@ def test_fresh_database_upgrades_to_ecosystem_head(tmp_path: Path) -> None:
     from alembic.script import ScriptDirectory
 
     alembic_config = Config(str(BACKEND_DIR / "alembic.ini"))
+    # alembic.ini uses a relative script_location; the test process runs from repo root.
+    alembic_config.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
     expected_head = ScriptDirectory.from_config(alembic_config).get_current_head()
     assert version == expected_head
     engine.dispose()

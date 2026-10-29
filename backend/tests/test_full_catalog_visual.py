@@ -75,3 +75,11 @@ def test_complete_index_resolves_real_sku_and_empty_match_does_not_use_demo_cata
 def test_missing_or_incomplete_index_keeps_existing_fallback(tmp_path, monkeypatch):
     monkeypatch.setenv("OMA_VISUAL_INDEX_DIR", str(tmp_path))
     assert visual.search_full_catalog(b"image", [], tmp_path) is None
+
+
+def test_index_status_reports_missing_files_without_claiming_ready(tmp_path, monkeypatch):
+    monkeypatch.setenv("OMA_VISUAL_INDEX_DIR", str(tmp_path))
+    status = visual.index_status(tmp_path)
+    assert status["ready"] is False
+    assert status["reason"] == "full_catalog_index_not_installed"
+    assert status["indexed_products"] == 0

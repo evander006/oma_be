@@ -17,8 +17,8 @@ function Find-OmaWifi {
         return $picked[0]
     }
     $wifi = @($all | Where-Object {
-        $_.InterfaceAlias -match '(?i)wi.?fi|wireless|wlan|беспровод' -or
-        $_.NetAdapter.InterfaceDescription -match '(?i)wi.?fi|wireless|802\.11|wlan|беспровод'
+        $_.InterfaceAlias -match '(?i)wi.?fi|wireless|wlan' -or
+        $_.NetAdapter.InterfaceDescription -match '(?i)wi.?fi|wireless|802\.11|wlan'
     })
     if ($wifi.Count -ne 1) {
         $candidates = $all | ForEach-Object {
@@ -123,8 +123,10 @@ try {
         } catch { }
     }
 }
-if ($null -eq $status -or -not $status.ready) {
-    throw "SigLIP2 server did not report ready=true. Inspect the Python window."
+if ($null -eq $status -or -not $status.ready -or
+    $status.method -ne "siglip2_catalog_embeddings" -or
+    [int]$status.indexed_products -le 0) {
+    throw "SigLIP2 server status invalid. Check port 8765 and Python server output."
 }
 
 $networkUrl = "http://$ip" + ":$Port"

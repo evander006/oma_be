@@ -611,7 +611,7 @@ function makeProductObject(room,item,placement) {
   const group=new THREE.Group();
   const position=item.position || {};
   const idx=room.items.length;
-  let px=Number(position.x),pz=Number(position.z);
+  let px=position.x==null?NaN:Number(position.x),pz=position.z==null?NaN:Number(position.z);
   if(!Number.isFinite(px))px=((idx%3)-1)*.85;
   if(!Number.isFinite(pz))pz=(Math.floor(idx/3)-.5)*.8;
   group.position.set(clamp(px,-room.w/2+.45,room.w/2-.45),.065,clamp(pz,-room.d/2+.45,room.d/2-.45));

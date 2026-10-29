@@ -529,6 +529,9 @@ function createRoom(info,index) {
   const floor=box(group,w,.13,d,0,-.07,0,floorMaterial(info,w,d),false);
   floor.userData.interaction={kind:"room",roomId:String(info.id),name:info.name,confirmed:!!info.dimensions_confirmed};
   clickables.push(floor);
+  const ceiling=box(group,w,.12,d,0,h+.06,0,roomWallMat,false);
+  ceiling.receiveShadow=false;
+  ceiling.visible=roomViewMode==="interior";
   const doorSide=normalizeWall(info.door_wall,"front");
   const windowSide=normalizeWall(info.window_wall,"back");
   const wallBack=addWallWithOpenings(group,"back",w,d,h,roomWallMat,roomAccentMat,doorSide,windowSide,true);
@@ -559,8 +562,9 @@ function createRoom(info,index) {
   roomLight.position.set(0,h-.26,0);group.add(roomLight);
   const label=roomLabel(info.name || "Комната");
   label.position.set(-w/2+.75,h+.16,-d/2+.2);group.add(label);
+  label.visible=roomViewMode==="cutaway";
   const room={
-    id:String(info.id),info:info,group:group,x:x,z:z,w:w,d:d,h:h,items:[],floor:floor,
+    id:String(info.id),info:info,group:group,x:x,z:z,w:w,d:d,h:h,items:[],floor:floor,ceiling:ceiling,label:label,
     walls:{
       frontCut:wallFrontCut&&wallFrontCut.group,
       frontFull:wallFrontFull.group,
@@ -586,6 +590,8 @@ function setRoomViewMode(mode) {
   roomViewMode=mode==="interior"?"interior":"cutaway";
   roomGroups.forEach(room=>{
     const walls=room.walls||{};
+    if(room.ceiling)room.ceiling.visible=roomViewMode==="interior";
+    if(room.label)room.label.visible=roomViewMode==="cutaway";
     if(walls.frontCut && walls.frontFull && walls.frontCut!==walls.frontFull){
       walls.frontCut.visible=roomViewMode==="cutaway";
       walls.frontFull.visible=roomViewMode==="interior";
@@ -599,7 +605,7 @@ function setRoomViewMode(mode) {
       walls.rightFull.visible=true;
     }
   });
-  controls.maxPolarAngle=roomViewMode==="interior"?Math.PI*.70:Math.PI/2.02;
+  controls.maxPolarAngle=roomViewMode==="interior"?Math.PI*.58:Math.PI/2.02;
   viewToggle.textContent=roomViewMode==="interior"?"План квартиры":"Вид изнутри";
   viewToggle.setAttribute("aria-pressed",String(roomViewMode==="interior"));
 }

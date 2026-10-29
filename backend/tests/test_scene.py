@@ -65,6 +65,14 @@ def test_only_ordered_and_explicitly_placed_products_appear(
     assert goods[0]["is_demo"] is True
 
 
+def test_scene_editor_route_serves_html(client):
+    response = client.get("/api/v1/scene/editor")
+    assert response.status_code == 200
+    assert "text/html" in response.headers.get("content-type", "")
+    assert "ОМА. Дом — 3D-квартира" in response.text
+    assert "catalog-toggle" in response.text
+
+
 def test_scene_excludes_unverified_legacy_placements(client, seeded_products, db):
     prop_id, room_id = _new_home(client)
     db.add(RoomPlacement(room_id=room_id, product_id=seeded_products[0].id))

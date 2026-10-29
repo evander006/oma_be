@@ -215,10 +215,6 @@ class RoomDesignPlacement(Base, TimestampMixin):
     """Unpurchased catalog products placed in a saved interior-design draft."""
 
     __tablename__ = "room_design_placements"
-    __table_args__ = (
-        UniqueConstraint("room_id", "product_id", name="uq_room_design_product"),
-    )
-
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     room_id: Mapped[int] = mapped_column(Integer, ForeignKey("rooms.id"), index=True)
     product_id: Mapped[str] = mapped_column(String(64), ForeignKey("products.id"), index=True)
